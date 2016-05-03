@@ -1,0 +1,4 @@
+[submodule "CosmicTrigger"]
+	path = CosmicTrigger
+	url = git@github.com:swertz/CosmicTrigger.git
+	branch = calibration
