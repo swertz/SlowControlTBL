@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.11)
 
-project(test CXX)
+project(test C CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
 
