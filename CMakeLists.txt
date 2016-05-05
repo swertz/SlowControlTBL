@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 2.8.11)
 
-project(test C CXX)
+project(SlowControlTBL C CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+  "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 if (CMAKE_VERSION VERSION_LESS "3.1")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -15,24 +17,27 @@ endif ()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
+find_package(Qt5Widgets REQUIRED)
+find_package(Threads REQUIRED)
+find_package(jsoncpp REQUIRED)
+
 include_directories(${JSONCPP_INCLUDE_DIRS})
 include_directories("include")
 
-find_package(Qt5Widgets)
-find_package(Threads)
-find_package(jsoncpp)
+set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+qt5_wrap_cpp(Interface_SRC include/Interface.h)
 
 set(SOURCES
     "src/main.cpp"
     "src/Interface.cpp"
     "src/LoggingManager.cpp"
     "src/Setup.cpp"
+    ${Interface_SRC}
     )
 
 add_executable(main ${SOURCES})
 
 qt5_use_modules(main Widgets)
 
-#target_link_libraries(helloworld Qt4::Widgets)
-target_link_libraries(main ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(main ${JSONCPP_LIBRARIES})
+target_link_libraries(main ${LIBS})
