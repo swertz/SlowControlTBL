@@ -11,8 +11,10 @@
 
 #include "LoggingManager.h"
 #include "Setup.h"
+#include "HVGroup.h"
 
 class Interface : public QWidget {
+    friend class HVGroup;
     
     Q_OBJECT
 
@@ -24,18 +26,24 @@ class Interface : public QWidget {
 
         void notifyUpdate();
 
+        bool isRunning() const { return running; }
+
     private slots:
         void startLoggingManager();
         void stopLoggingManager();
         void onPlus();
         void onMinus();
+        void setHV(int hv_value);
 
     private:
       
         void setCounter(int i);
 
         QLabel *label;
+        HVGroup* m_hv_group;
         std::shared_ptr<LoggingManager> m_logging_manager;
         std::shared_ptr<Setup> m_setup;
         std::thread thread_handler;
+
+        bool running;
 };

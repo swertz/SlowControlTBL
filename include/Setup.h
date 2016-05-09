@@ -14,13 +14,17 @@ class Setup {
 
         void lock() { m_mtx.lock(); }
         void unlock() { m_mtx.unlock(); }
+        std::mutex& getLock() { return m_mtx; }
 
         void setCounter(int c) { counter = c; }
-        int getCounter() { return counter; }
+        int getCounter() const { return counter; }
+        void setHV(int hv_value) { m_hv = hv_value; }
+        int getHV() const { return m_hv; }
 
     private:
 
         std::atomic<int> counter;
+        std::atomic<int> m_hv;
 
         std::mutex m_mtx;
 };
