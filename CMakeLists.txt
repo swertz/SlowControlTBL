@@ -26,14 +26,15 @@ include_directories("include")
 
 set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-qt5_wrap_cpp(Interface_SRC include/Interface.h)
+qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h)
 
 set(SOURCES
     "src/main.cpp"
     "src/Interface.cpp"
     "src/LoggingManager.cpp"
     "src/Setup.cpp"
-    ${Interface_SRC}
+    "src/HVGroup.cpp"
+    ${Interfaces_SRC}
     )
 
 add_executable(main ${SOURCES})

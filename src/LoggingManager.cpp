@@ -40,11 +40,10 @@ void LoggingManager::run(){
         if(std::chrono::duration_cast<std::chrono::milliseconds>(run_delta).count() >= run_time){
             run_start = run_stop;
             
-            m_setup.lock();
+            std::lock_guard<std::mutex> lock(m_setup.getLock());
             int counter = m_setup.getCounter();
             counter++;
             m_setup.setCounter(counter);
-            m_setup.unlock();
         }
         
         std::chrono::system_clock::time_point logging_stop = std::chrono::system_clock::now();
@@ -53,8 +52,9 @@ void LoggingManager::run(){
             logging_start = logging_stop;
             
             int counter = m_setup.getCounter();
+            int hv = m_setup.getHV();
             std::time_t c_time = std::chrono::system_clock::to_time_t(logging_stop);
-            std::cout << "Logging: " << counter << " -- " << ctime(&c_time);
+            std::cout << "Logging: " << counter << " -- HV = " << hv << " -- " << ctime(&c_time);
         }
     }
     
