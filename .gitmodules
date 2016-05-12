@@ -1,4 +1,0 @@
-[submodule "CosmicTrigger"]
-	path = CosmicTrigger
-	url = https://github.com/swertz/CosmicTrigger.git
-	branch = libCAEN
