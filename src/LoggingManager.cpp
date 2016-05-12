@@ -10,84 +10,104 @@
 #include "LoggingManager.h"
 #include "Interface.h"
 
-LoggingManager::LoggingManager(Interface& m_interface): 
+LoggingManager::LoggingManager(Interface& m_interface, uint32_t m_continuous_log_time, uint32_t m_interface_refresh_time): 
     m_interface(m_interface),
     m_setup(m_interface.getSetup()),
-    is_running(true)
+    is_running(true),
+    m_continuous_log_time(m_continuous_log_time),
+    m_interface_refresh_time(m_interface_refresh_time),
+    m_conditions(Json::arrayValue)
 {
     std::cout << "Creating LoggingManager." << std::endl;
-    
-    m_condition_log["start_time"] = timeNowString<m_clock>();
-
-    Json::Value conditions;
-    Json::Value hv_values;
-    hv_values["hv_0"] = m_setup.getHV();
-    
-    conditions["hv_values"] = hv_values;
-    m_condition_log["conditions"] = conditions;
-
-    m_continuous_log.open("cont_log.csv");
-    if(!m_continuous_log.is_open())
-        throw std::ios_base::failure("Could not open file cont_log.csv");
-    m_continuous_log << "timestamp,hv_0" << std::endl;
 }
 
 void LoggingManager::run(){
-    const int logging_time = 1000;
-    auto logging_start = timeNow<m_clock>();
     
-    const int interface_time = 250;
-    auto interface_start = timeNow<m_clock>();
+    std::cout << "Starting logger." << std::endl;
     
-    const int run_time = 20;
-    auto run_start = timeNow<m_clock>();
-
+    initConditionLog();
+    initContinuousLog();
+    
+    auto logging_start = m_clock::now();
+    auto interface_start = m_clock::now();
+    
     while(is_running){
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         
-        auto interface_stop = timeNow<m_clock>();
+        auto interface_stop = m_clock::now();
         std::chrono::duration<double> interface_delta = interface_stop - interface_start;
-        if(std::chrono::duration_cast<std::chrono::milliseconds>(interface_delta).count() >= interface_time){
+        if(std::chrono::duration_cast<std::chrono::milliseconds>(interface_delta).count() >= m_interface_refresh_time){
             interface_start = interface_stop;
             
             m_interface.notifyUpdate();
         }  
         
-        auto run_stop = timeNow<m_clock>();
-        std::chrono::duration<double> run_delta = run_stop - run_start;
-        if(std::chrono::duration_cast<std::chrono::milliseconds>(run_delta).count() >= run_time){
-            run_start = run_stop;
-            
-            std::lock_guard<std::mutex> lock(m_setup.getLock());
-            int counter = m_setup.getCounter();
-            counter++;
-            m_setup.setCounter(counter);
-        }
-        
-        auto logging_stop = timeNow<m_clock>();
+        auto logging_stop = m_clock::now();
         std::chrono::duration<double> logging_delta = logging_stop - logging_start;
-        if(std::chrono::duration_cast<std::chrono::milliseconds>(logging_delta).count() >= logging_time){
+        if(std::chrono::duration_cast<std::chrono::milliseconds>(logging_delta).count() >= m_continuous_log_time){
             logging_start = logging_stop;
-            
-            int counter = m_setup.getCounter();
-            int hv = m_setup.getHV();
-            m_continuous_log << timeToString<m_clock>(logging_stop) << "," << hv << std::endl;
-            std::cout << "Logging: " << counter << " -- HV = " << hv << " -- " << timeToString<m_clock>(logging_stop) << std::endl;
+
+            updateContinuousLog(logging_stop);
         }
     }
 
     std::cout << "Stopping logger." << std::endl;
-    finalize();
+    finalizeConditionLog();
+    finalizeContinuousLog();
 }
 
-void LoggingManager::finalize() {
-    m_condition_log["stop_time"] = timeNowString<m_clock>();
+void LoggingManager::initContinuousLog() {
+    m_continuous_log.open("cont_log.csv"); // FIXME add run number
+    if(!m_continuous_log.is_open())
+        throw std::ios_base::failure("Could not open file cont_log.csv");
+    m_continuous_log << "timestamp,hv_0" << std::endl;
+}
+    
+void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
+    int counter = m_setup.getCounter();
+    int hv = m_setup.getHV();
+    m_continuous_log << log_time.time_since_epoch().count() << "," << hv << std::endl;
+    std::cout << "Logging: " << counter << " -- HV = " << hv << " -- " << timeToString<m_clock>(log_time) << std::endl;
+}
+
+void LoggingManager::initConditionLog() {
+    auto start_time = m_clock::now();
+    m_condition_log["start_time_human"] = timeToString<m_clock>(start_time);
+    m_condition_log["start_time"] = timeToJson<m_clock>(start_time); 
+    updateConditionLog(true);
+}
+
+void LoggingManager::finalizeContinuousLog() {
+    m_continuous_log.close();
+}
+    
+
+void LoggingManager::updateConditionLog(bool first_time) {
+    m_condition_log["conditions_changed"] = !first_time;
+    
+    Json::Value this_condition;
+    
+    Json::Value hv_values;
+    hv_values["hv_0_set"] = m_setup.getHV();
+    this_condition["hv_values"] = hv_values;
+    
+    auto this_time = m_clock::now();
+    this_condition["time"] = timeToJson<m_clock>(this_time); 
+    
+    m_conditions.append(this_condition);
+}
+
+void LoggingManager::finalizeConditionLog() {
+    auto stop_time = m_clock::now();
+    m_condition_log["stop_time_human"] = timeToString<m_clock>(stop_time);
+    m_condition_log["stop_time"] = timeToJson<m_clock>(stop_time); 
+    m_condition_log["conditions"] = m_conditions;
 
     Json::StyledWriter m_writer;
     std::cout << m_writer.write(m_condition_log) << std::endl;
 
     std::ofstream file_stream;
-    file_stream.open("cond_log.json");
+    file_stream.open("cond_log.json"); // FIXME add run number
     if(!file_stream.is_open())
         throw std::ios_base::failure("Could not open file cond_log.json");
     file_stream << m_writer.write(m_condition_log);
