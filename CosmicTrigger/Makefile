@@ -10,8 +10,6 @@
 #                                                                      
 ########################################################################
 
-EXE	=	main
-
 CC	=	g++
 
 COPTS	=	-fPIC -DLINUX -Wall 
@@ -31,22 +29,18 @@ OBJS	=	include/Discri.o include/HV.o include/TDC.o include/TTCvi.o include/VmeBo
 
 #########################################################################
 
-all	:	$(EXE)
+all	:	libCAEN
 
 clean	:
-		/bin/rm -f $(OBJS) main.o $(EXE) libCAEN.so
-
-$(EXE)	:	$(OBJS) main.o
-		/bin/rm -f $(EXE)
-		$(CC) $(FLAGS) -o $(EXE) $(OBJS) main.o $(DEPLIBS)
+		/bin/rm -f $(OBJS)  lib/libCAEN.so
+		if [ -d lib ]; then rmdir lib; fi
 
 $(OBJS)	:	Makefile
-
-main.o	:	Makefile
 
 %.o	:	%.cpp
 		$(CC) $(COPTS) $(INCLUDEDIR) -c -o $@ $<
 
 libCAEN : $(OBJS)
+	if [ ! -d lib ]; then mkdir lib; fi
 	$(CC) -shared -o lib/libCAEN.so $(OBJS) $(DEPLIBS)
 
