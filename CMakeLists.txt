@@ -23,7 +23,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Threads REQUIRED)
 find_package(jsoncpp REQUIRED)
 
-include_directories(${JSONCPP_INCLUDE_DIRS})
+include_directories(${JSONCPP_INCLUDE_PREFIX})
 include_directories("include")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/include)
 

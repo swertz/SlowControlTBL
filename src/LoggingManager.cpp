@@ -5,7 +5,7 @@
 #include <ctime>
 #include <exception>
 
-#include <jsoncpp/json/writer.h>
+#include <json/writer.h>
 
 #include "LoggingManager.h"
 #include "Interface.h"

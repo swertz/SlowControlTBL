@@ -10,8 +10,6 @@
 #                                                                      
 ########################################################################
 
-EXE	=	main
-
 CC	=	g++
 
 COPTS	=	-fPIC -DLINUX -Wall 
@@ -26,23 +24,23 @@ LIBS	=
 
 INCLUDEDIR =	-I.
 
-OBJS	= 	main.o include/Discri.o include/HV.o include/TDC.o include/TTCvi.o include/VmeBoard.o include/VmeController.o include/VmeUsbBridge.o include/CommonDef.o include/Scaler.o
+OBJS	=	include/Discri.o include/HV.o include/TDC.o include/TTCvi.o include/VmeBoard.o include/VmeController.o include/VmeUsbBridge.o include/CommonDef.o include/Scaler.o
 
-
-INCLUDES =	include/CAENVMElib.h include/CAENVMEtypes.h include/CAENVMEoslib.h
 
 #########################################################################
 
-all	:	$(EXE)
+all	:	libCAEN
 
 clean	:
-		/bin/rm -f $(OBJS) $(EXE)
+		/bin/rm -f $(OBJS)  lib/libCAEN.so
+		if [ -d lib ]; then rmdir lib; fi
 
-$(EXE)	:	$(OBJS)
-		/bin/rm -f $(EXE)
-		$(CC) $(FLAGS) -o $(EXE) $(OBJS) $(DEPLIBS)
-
-$(OBJS)	:	$(INCLUDES) Makefile
+$(OBJS)	:	Makefile
 
 %.o	:	%.cpp
 		$(CC) $(COPTS) $(INCLUDEDIR) -c -o $@ $<
+
+libCAEN : $(OBJS)
+	if [ ! -d lib ]; then mkdir lib; fi
+	$(CC) -shared -o lib/libCAEN.so $(OBJS) $(DEPLIBS)
+
