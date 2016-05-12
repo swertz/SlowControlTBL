@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(SlowControlTBL C CXX)
 
-set(CMAKE_BUILD_TYPE Debug)
+add_definitions(-DLINUX)
+
+set(CMAKE_BUILD_TYPE ReleaseWithDebug)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -23,8 +25,9 @@ find_package(jsoncpp REQUIRED)
 
 include_directories(${JSONCPP_INCLUDE_DIRS})
 include_directories("include")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/include)
 
-set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/lib/libCAEN.so)
 
 qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h)
 
