@@ -8,14 +8,32 @@
 #include <mutex>
 
 #include "Interface.h"
+#include "SetupManager.h"
+#include "RealSetupManager.h"
+#include "FakeSetupManager.h"
+#include "VmeUsbBridge.h"
 
 Interface::Interface(QWidget *parent): 
     QWidget(parent),
     label(nullptr),
-    m_setup(new Setup()),
+    m_conditions(new ConditionManager()),
     running(false) {
-        std::cout << "Creating Interface. Qt version: " << qVersion() << "." << std::endl;
 
+        std::cout << "Checking if the PC is connected to board..." << std::endl;
+        UsbController *dummy_controller = new UsbController(DEBUG);
+        bool canTalkToBoards = (dummy_controller->getStatus() == 0);
+        std::cout << "Deleting dummy USB controller..." << std::endl;
+        delete dummy_controller;
+        if (canTalkToBoards) {
+            std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
+            m_setup_manager = new RealSetupManager(*this);
+        }
+        else {
+            std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
+            m_setup_manager = new FakeSetupManager();
+        }
+
+        std::cout << "Creating Interface. Qt version: " << qVersion() << "." << std::endl;
         QGridLayout *master_grid = new QGridLayout();
 
         QGroupBox *run_box = new QGroupBox("Run control");
@@ -48,26 +66,23 @@ Interface::Interface(QWidget *parent):
         connect(plsBtn, &QPushButton::clicked, this, &Interface::onPlus);
         connect(minBtn, &QPushButton::clicked, this, &Interface::onMinus);
         connect(quit, &QPushButton::clicked, this, &Interface::stopLoggingManager);
+        connect(quit, &QPushButton::clicked, [=](){ m_setup_manager->switchHVPMTOFF(); });
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
         resize(500, 200);
         //showFullScreen();
-}
+    }
 
-Setup& Interface::getSetup(){
-    return *m_setup;
+ConditionManager& Interface::getConditions(){
+    return *m_conditions;
 }
 
 void Interface::notifyUpdate() {
-    setCounter(m_setup->getCounter());
+    setCounter(m_conditions->getCounter());
 }
 
 void Interface::setCounter(int i) {
     label->setText(QString::number(i));
-}
-
-void Interface::setHV(int hv_value) {
-    m_setup->setHV(hv_value);
 }
 
 void Interface::startLoggingManager(){
@@ -90,24 +105,24 @@ void Interface::stopLoggingManager(){
     thread_handler.join();
     m_logging_manager.reset();
 
-    m_setup->setCounter(0);
+    m_conditions->setCounter(0);
     notifyUpdate();
 
     m_hv_group->setNotRunning();
 
     running = false;
 }
-    
+
 void Interface::onPlus(){
-    std::lock_guard<std::mutex> lock(m_setup->getLock());
-    int val = m_setup->getCounter() + 100;
+    std::lock_guard<std::mutex> lock(m_conditions->getLock());
+    int val = m_conditions->getCounter() + 100;
     label->setText(QString::number(val));
-    m_setup->setCounter(val);
+    m_conditions->setCounter(val);
 }
 
 void Interface::onMinus(){
-    std::lock_guard<std::mutex> lock(m_setup->getLock());
-    int val = m_setup->getCounter() - 100;
+    std::lock_guard<std::mutex> lock(m_conditions->getLock());
+    int val = m_conditions->getCounter() - 100;
     label->setText(QString::number(val));
-    m_setup->setCounter(val);
+    m_conditions->setCounter(val);
 }

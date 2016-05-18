@@ -35,8 +35,10 @@ set(SOURCES
     "src/main.cpp"
     "src/Interface.cpp"
     "src/LoggingManager.cpp"
-    "src/Setup.cpp"
+    "src/ConditionManager.cpp"
     "src/HVGroup.cpp"
+    "src/RealSetupManager.cpp"
+    "src/FakeSetupManager.cpp"
     ${Interfaces_SRC}
     )
 

@@ -20,20 +20,28 @@ class HVGroup : public QWidget {
     public:
         HVGroup(Interface& m_interface);
         virtual ~HVGroup() {}
+        struct HVEntry {
+            QLabel *label;
+            QLabel *value_label;
+            QSpinBox *spin_box;
+        };
+
 
     private slots:
-        void valueChanged(int m_hv);
-        void setHV();
+        //void valueChanged(int m_hv);
         void setRunning();
         void setNotRunning();
+        void switchON();
+        void switchOFF();
+        void setHV();
 
     private:
       
         QGroupBox *m_box;
-        QLabel *m_label;
-        QLabel *m_value_label;
-        QSpinBox *m_spin;
+        std::vector<HVEntry> m_hventries;
         QPushButton *m_set;
+        QPushButton *m_on_btn;
+        QPushButton *m_off_btn;
         QGridLayout *m_layout;
 
         Interface& m_interface;

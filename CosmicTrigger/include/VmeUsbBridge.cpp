@@ -6,14 +6,13 @@ UsbController::UsbController(int verbose){
   this->verbose=verbose;
   this->board=V1718;
   int32_t *handle = new int32_t;
-  int status=CAENVME_Init((CVBoardTypes)(int)board, 0, 0, handle);
+  m_status = CAENVME_Init((CVBoardTypes)(int)board, 0, 0, handle);
   this->BHandle=handle;
   this->AM=A32_S_DATA;
   this->DW=D16;
-  if (status==0)cout<<"VME USB Init... ok!"<<endl;
+  if (m_status==0)cout<<"VME USB Init... ok!"<<endl;
   else {
-    cout<<"***FATAL ERROR: "<<status<<" when starting usb board"<<endl;
-    exit(-1); 
+    cout<<"***FATAL ERROR: "<< m_status <<" when starting usb board"<<endl;
   }
 }
 
