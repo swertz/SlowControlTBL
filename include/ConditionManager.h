@@ -8,15 +8,16 @@
 #include <vector>
 #include <string>
 
-class Setup {
+class ConditionManager {
     
     public:
 
-        Setup(): 
-            counter(0), 
+        ConditionManager(): 
+            counter(0),
+            m_hvpmt_setStates({1, 1, 1, 0}),
+            m_hvpmt_setValues({1025, 925, 1225, 0}),
             m_state(State::idle)
         {
-            std::cout << "Creating Setup" << std::endl;
 
             // for testing purposes
             setState(State::configured);
@@ -24,7 +25,7 @@ class Setup {
             startDaemons();
         }
 
-        ~Setup() { stopDaemons(); }
+        ~ConditionManager() { stopDaemons(); }
 
         /*
          * Define states of the state machine.
@@ -41,28 +42,28 @@ class Setup {
         };
 
         /*
-         * Get current Setup state
+         * Get current ConditionManager state
          */
-        Setup::State getState() const { return m_state; }
+        ConditionManager::State getState() const { return m_state; }
         
         /*
-         * Change Setup state to `state`.
+         * Change ConditionManager state to `state`.
          * Throws exception if transition from current state is not allowed.
          * Returns:
          *  - `true` if state was changed successfully
-         *  - `false` if Setup was already in the requested state
+         *  - `false` if ConditionManager was already in the requested state
          */
-        bool setState(Setup::State state);
+        bool setState(ConditionManager::State state);
         
         /*
          * Convert the state to a string
          */
-        static std::string stateToString(Setup::State state);
+        static std::string stateToString(ConditionManager::State state);
 
         /*
          * Check if transition from `state_from` to `state_to` is allowed
          */
-        static bool checkTransition(Setup::State state_from, Setup::State state_to);
+        static bool checkTransition(ConditionManager::State state_from, ConditionManager::State state_to);
         
         void lock() { m_mtx.lock(); }
         void unlock() { m_mtx.unlock(); }
@@ -70,8 +71,13 @@ class Setup {
 
         void setCounter(int c) { counter = c; }
         int getCounter() const { return counter; }
-        void setHV(int hv_value) { m_hv = hv_value; }
-        int getHV() const { return m_hv; }
+        /*
+         * Define/retrieve the PMT HV value (no action taken on the setup)
+         * So far, this is a vector with entry==channel
+         */
+        void setHVPMTValue(int HVNumber, int HVValue);
+        const std::vector<int>& getHVPMTSetValues() const { return m_hvpmt_setValues; }
+        const std::vector<int>& getHVPMTSetStates() const { return m_hvpmt_setStates; }
 
         /*
          * Daemons: will run as threads in the background,
@@ -89,7 +95,6 @@ class Setup {
     private:
 
         std::atomic<int> counter;
-        std::atomic<int> m_hv;
 
         std::mutex m_mtx;
 
@@ -97,4 +102,7 @@ class Setup {
 
         std::thread thread_handle_HV;
         std::thread thread_handle_TDC;
+
+        std::vector<int> m_hvpmt_setValues;
+        std::vector<int> m_hvpmt_setStates;
 };

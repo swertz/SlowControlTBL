@@ -34,6 +34,7 @@ public:
      int readData(long unsigned int address,void* data);
      int writeData(long unsigned int address,void* data,AddressModifier AM, DataWidth DW);
      int readData(long unsigned int address,void* data,AddressModifier AM, DataWidth DW);
+     int getStatus() { return m_status; }
 
 
      AddressModifier getAM(void);
@@ -43,6 +44,7 @@ private:
   AddressModifier AM;
   DataWidth DW;
   int32_t* BHandle;
+  int m_status;
   /**<
    * 
    * \brief Communication identifier.

@@ -6,7 +6,7 @@
 
 #include <json/value.h>
 
-#include "Setup.h"
+#include "ConditionManager.h"
 
 // Forward declaration
 class Interface;
@@ -27,23 +27,23 @@ class LoggingManager {
         
       using m_clock = std::chrono::system_clock;
 
-      void initConditionLog();
-      void updateConditionLog(m_clock::time_point log_time, bool first_time = false);
-      void finalizeConditionLog();
+      void initConditionManagerLog();
+      void updateConditionManagerLog(m_clock::time_point log_time, bool first_time = false);
+      void finalizeConditionManagerLog();
       
       void initContinuousLog();
       void updateContinuousLog(m_clock::time_point log_time);
       void finalizeContinuousLog();
 
       Interface& m_interface;
-      Setup& m_setup;
+      ConditionManager& m_conditions;
       std::atomic<bool> is_running;
 
       uint32_t m_continuous_log_time;
       uint32_t m_interface_refresh_time;
 
-      Json::Value m_condition_log;
-      Json::Value m_conditions;
+      Json::Value m_condition_json_root;
+      Json::Value m_condition_json_list;
 
       std::ofstream m_continuous_log;
 };
