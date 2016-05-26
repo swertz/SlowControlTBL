@@ -53,7 +53,7 @@ bool ConditionManager::setState(ConditionManager::State state) {
 }
 
 void ConditionManager::setHVPMTValue(int HVNumber, int HVValue) {
-    m_hvpmt_setValues[HVNumber] = HVValue;
+    m_hvpmt_setValues.at(HVNumber) = HVValue;
 }
 
 void ConditionManager::startDaemons() {

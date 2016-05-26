@@ -42,8 +42,8 @@ class LoggingManager {
       uint32_t m_continuous_log_time;
       uint32_t m_interface_refresh_time;
 
-      Json::Value m_condition_log;
-      Json::Value m_conditions_json;
+      Json::Value m_condition_json_root;
+      Json::Value m_condition_json_list;
 
       std::ofstream m_continuous_log;
 };

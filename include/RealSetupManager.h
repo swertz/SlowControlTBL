@@ -1,5 +1,4 @@
-#ifndef REALSETUPMANAGER_H
-#define REALSETUPMANAGER_H
+#pragma once
 
 #include "SetupManager.h"
 #include "VmeUsbBridge.h"
@@ -23,4 +22,3 @@ class RealSetupManager : public SetupManager {
         
         Interface& m_interface;
 };
-#endif

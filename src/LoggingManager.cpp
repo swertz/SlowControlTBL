@@ -16,7 +16,7 @@ LoggingManager::LoggingManager(Interface& m_interface, uint32_t m_continuous_log
     is_running(true),
     m_continuous_log_time(m_continuous_log_time),
     m_interface_refresh_time(m_interface_refresh_time),
-    m_conditions_json(Json::arrayValue)
+    m_condition_json_list(Json::arrayValue)
 {
     std::cout << "Creating LoggingManager." << std::endl;
 }
@@ -86,15 +86,15 @@ void LoggingManager::finalizeContinuousLog() {
 
 void LoggingManager::initConditionManagerLog() {
     auto start_time = m_clock::now();
-    m_condition_log["start_time_human"] = timeToString<m_clock>(start_time);
-    m_condition_log["start_time"] = timeToJson<m_clock>(start_time); 
+    m_condition_json_root["start_time_human"] = timeToString<m_clock>(start_time);
+    m_condition_json_root["start_time"] = timeToJson<m_clock>(start_time); 
     updateConditionManagerLog(start_time, true);
 }
 
 void LoggingManager::updateConditionManagerLog(m_clock::time_point log_time, bool first_time) {
     std::cout << "Updating conditions log" << std::endl;
 
-    m_condition_log["conditions_changed"] = !first_time;
+    m_condition_json_root["conditions_changed"] = !first_time;
     
     Json::Value this_condition;
     
@@ -104,14 +104,14 @@ void LoggingManager::updateConditionManagerLog(m_clock::time_point log_time, boo
     
     this_condition["time"] = timeToJson<m_clock>(log_time); 
     
-    m_conditions_json.append(this_condition);
+    m_condition_json_list.append(this_condition);
 }
 
 void LoggingManager::finalizeConditionManagerLog() {
     auto stop_time = m_clock::now();
-    m_condition_log["stop_time_human"] = timeToString<m_clock>(stop_time);
-    m_condition_log["stop_time"] = timeToJson<m_clock>(stop_time); 
-    m_condition_log["conditions"] = m_conditions_json;
+    m_condition_json_root["stop_time_human"] = timeToString<m_clock>(stop_time);
+    m_condition_json_root["stop_time"] = timeToJson<m_clock>(stop_time); 
+    m_condition_json_root["conditions"] = m_condition_json_list;
 
     Json::StyledWriter m_writer;
 
@@ -119,6 +119,6 @@ void LoggingManager::finalizeConditionManagerLog() {
     file_stream.open("cond_log.json"); // FIXME add run number
     if(!file_stream.is_open())
         throw std::ios_base::failure("Could not open file cond_log.json");
-    file_stream << m_writer.write(m_condition_log);
+    file_stream << m_writer.write(m_condition_json_root);
     file_stream.close();
 }    

@@ -73,7 +73,7 @@ Interface::Interface(QWidget *parent):
         //showFullScreen();
     }
 
-ConditionManager& Interface::getConditions(){
+ConditionManager& Interface::getConditions() {
     return *m_conditions;
 }
 
@@ -85,7 +85,7 @@ void Interface::setCounter(int i) {
     label->setText(QString::number(i));
 }
 
-void Interface::startLoggingManager(){
+void Interface::startLoggingManager() {
     if(m_logging_manager.get())
         return;
 
@@ -97,7 +97,7 @@ void Interface::startLoggingManager(){
     running = true;
 }
     
-void Interface::stopLoggingManager(){
+void Interface::stopLoggingManager() {
     if(!m_logging_manager.get())
         return;
 
@@ -113,14 +113,14 @@ void Interface::stopLoggingManager(){
     running = false;
 }
 
-void Interface::onPlus(){
+void Interface::onPlus() {
     std::lock_guard<std::mutex> lock(m_conditions->getLock());
     int val = m_conditions->getCounter() + 100;
     label->setText(QString::number(val));
     m_conditions->setCounter(val);
 }
 
-void Interface::onMinus(){
+void Interface::onMinus() {
     std::lock_guard<std::mutex> lock(m_conditions->getLock());
     int val = m_conditions->getCounter() - 100;
     label->setText(QString::number(val));

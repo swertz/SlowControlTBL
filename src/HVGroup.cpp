@@ -1,5 +1,4 @@
-#include <string>
-#include <sstream>
+#include <QString>
 
 #include "HVGroup.h"
 #include "Interface.h"
@@ -13,20 +12,16 @@ HVGroup::HVGroup(Interface& m_interface):
         m_layout = new QGridLayout();
 
         int temp_iterator = 0;
-        for (int setHVValue : m_interface.getConditions().getHVPMTSetValues()){
+        for (int setHVValue : m_interface.getConditions().getHVPMTSetValues()) {
             HVEntry hventry;
-            std::ostringstream HVNumber;
-            HVNumber << temp_iterator;
-            std::string label = "HV " + HVNumber.str() + " value:";
-            hventry.label = new QLabel(label.c_str());
+            const QString label = "HV " + QString::number(temp_iterator) + " value:";
+            hventry.label = new QLabel(label);
             hventry.spin_box = new QSpinBox();
             hventry.spin_box->setRange(0, 2000);
             hventry.spin_box->setWrapping(1);
             hventry.spin_box->setSingleStep(1);
             hventry.spin_box->setValue(setHVValue);
-            std::ostringstream HVValue;
-            HVValue << hventry.spin_box->value();
-            hventry.value_label = new QLabel(HVValue.str().c_str());
+            hventry.value_label = new QLabel(std::to_string(hventry.spin_box->value()).c_str());
             hventry.value_label->hide();
             //connect(hventry.spin_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &HVGroup::valueChanged);
             m_hventries.push_back(hventry);
@@ -74,13 +69,10 @@ void HVGroup::switchOFF() {
 
 void HVGroup::setHV() {
     // Update Condition manager with new HV set values
-    int temp_iterator = 0;
-    for (HVEntry hventry : m_hventries) {
-        std::ostringstream HVValue;
-        HVValue << hventry.spin_box->value();
-        hventry.value_label = new QLabel(HVValue.str().c_str());
-        m_interface.getConditions().setHVPMTValue(temp_iterator, hventry.spin_box->value());
-        temp_iterator++;
+    for (size_t id = 0; id < m_hventries.size(); id++) {
+        HVEntry hventry = m_hventries.at(id);
+        hventry.value_label = new QLabel(QString::number(hventry.spin_box->value()));
+        m_interface.getConditions().setHVPMTValue(id, hventry.spin_box->value());
     }
     // Set physically the HV values
     m_interface.getSetupManager()->setHVPMT();

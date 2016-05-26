@@ -76,8 +76,8 @@ class ConditionManager {
          * So far, this is a vector with entry==channel
          */
         void setHVPMTValue(int HVNumber, int HVValue);
-        std::vector<int> getHVPMTSetValues() const { return m_hvpmt_setValues; }
-        std::vector<int> getHVPMTSetStates() const { return m_hvpmt_setStates; }
+        const std::vector<int>& getHVPMTSetValues() const { return m_hvpmt_setValues; }
+        const std::vector<int>& getHVPMTSetStates() const { return m_hvpmt_setStates; }
 
         /*
          * Daemons: will run as threads in the background,

@@ -1,5 +1,4 @@
-#ifndef FAKESETUPMANAGER_H
-#define FAKESETUPMANAGER_H
+#pragma once
 
 #include "SetupManager.h"
 
@@ -11,4 +10,3 @@ class FakeSetupManager : public SetupManager {
         virtual void switchHVPMTON() override;
         virtual void switchHVPMTOFF() override;
 };
-#endif

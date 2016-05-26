@@ -1,5 +1,4 @@
-#ifndef SETUPMANAGER_H
-#define SETUPMANAGER_H
+#pragma once
 
 #include <vector>
 
@@ -9,4 +8,3 @@ class SetupManager {
         virtual void switchHVPMTON() = 0;
         virtual void switchHVPMTOFF() = 0;
 };
-#endif
