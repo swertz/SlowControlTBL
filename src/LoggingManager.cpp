@@ -72,7 +72,6 @@ void LoggingManager::initContinuousLog() {
 }
     
 void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
-    int counter = m_conditions.getCounter();
     std::vector<int> hv = m_conditions.getHVPMTSetValues();
     m_continuous_log << log_time.time_since_epoch().count() << "," << hv[0] << std::endl;
     std::cout << timeToString<m_clock>(log_time) << " -- HV = " << hv[0] << std::endl;

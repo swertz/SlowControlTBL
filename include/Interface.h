@@ -35,25 +35,22 @@ class Interface : public QWidget {
         void notifyUpdate();
 
         bool isRunning() const { return running; }
-        SetupManager* getSetupManager() const { return m_setup_manager; }
+        const std::shared_ptr<SetupManager>& getSetupManager() const { return m_setup_manager; }
 
     private slots:
         void startLoggingManager();
         void stopLoggingManager();
-        void onPlus();
-        void onMinus();
 
     private:
       
         void setCounter(int i);
 
-        QLabel* label;
         HVGroup* m_hv_group;
         std::shared_ptr<LoggingManager> m_logging_manager;
         std::shared_ptr<ConditionManager> m_conditions;
         std::thread thread_handler;
 
-        SetupManager* m_setup_manager;
+        std::shared_ptr<SetupManager> m_setup_manager;
 
         bool running;
 };

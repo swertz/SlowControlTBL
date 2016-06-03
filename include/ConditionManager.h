@@ -13,7 +13,6 @@ class ConditionManager {
     public:
 
         ConditionManager(): 
-            counter(0),
             m_hvpmt_setStates({1, 1, 1, 0}),
             m_hvpmt_setValues({1025, 925, 1225, 0}),
             m_state(State::idle)
@@ -69,8 +68,6 @@ class ConditionManager {
         void unlock() { m_mtx.unlock(); }
         std::mutex& getLock() { return m_mtx; }
 
-        void setCounter(int c) { counter = c; }
-        int getCounter() const { return counter; }
         /*
          * Define/retrieve the PMT HV value (no action taken on the setup)
          * So far, this is a vector with entry==channel
@@ -93,8 +90,6 @@ class ConditionManager {
         static const std::vector< std::pair<State, State> > m_transitions;
 
     private:
-
-        std::atomic<int> counter;
 
         std::mutex m_mtx;
 
