@@ -14,7 +14,7 @@
 
 Interface::Interface(QWidget *parent): 
     QWidget(parent),
-    m_conditions(new ConditionManager()),
+    m_conditions(new ConditionManager(*this)),
     running(false) {
 
         std::cout << "Checking if the PC is connected to board..." << std::endl;
@@ -55,7 +55,6 @@ Interface::Interface(QWidget *parent):
         connect(startBtn, &QPushButton::clicked, this, &Interface::startLoggingManager);
         connect(stopBtn, &QPushButton::clicked, this, &Interface::stopLoggingManager);
         connect(quit, &QPushButton::clicked, this, &Interface::stopLoggingManager);
-        connect(quit, &QPushButton::clicked, [=](){ m_setup_manager->switchHVPMTOFF(); });
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
         resize(500, 200);
@@ -67,6 +66,11 @@ ConditionManager& Interface::getConditions() {
 }
 
 void Interface::notifyUpdate() {
+}
+
+void Interface::updateConditionLog() {
+    if (running)
+        m_logging_manager->updateConditionManagerLog();
 }
 
 void Interface::startLoggingManager() {

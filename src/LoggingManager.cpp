@@ -33,20 +33,20 @@ void LoggingManager::run(){
     
     while(is_running){
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
+       
+        // Loop updating the interface every X
         auto interface_stop = m_clock::now();
         std::chrono::duration<double> interface_delta = interface_stop - interface_start;
         if(std::chrono::duration_cast<std::chrono::milliseconds>(interface_delta).count() >= m_interface_refresh_time){
             interface_start = interface_stop;
-            
             m_interface.notifyUpdate();
         } 
         
+        // Loop updating the continuous log every X
         auto logging_stop = m_clock::now();
         std::chrono::duration<double> logging_delta = logging_stop - logging_start;
         if(std::chrono::duration_cast<std::chrono::milliseconds>(logging_delta).count() >= m_continuous_log_time){
             logging_start = logging_stop;
-
             updateContinuousLog(logging_stop);
         }
     }
@@ -72,9 +72,9 @@ void LoggingManager::initContinuousLog() {
 }
     
 void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
-    std::vector<int> hv = m_conditions.getHVPMTSetValues();
+    /*std::vector<int> hv = m_conditions.getHVPMTSetValues();
     m_continuous_log << log_time.time_since_epoch().count() << "," << hv[0] << std::endl;
-    std::cout << timeToString<m_clock>(log_time) << " -- HV = " << hv[0] << std::endl;
+    std::cout << timeToString<m_clock>(log_time) << " -- HV = " << hv[0] << std::endl;*/
 }
 
 void LoggingManager::finalizeContinuousLog() {
@@ -87,20 +87,28 @@ void LoggingManager::initConditionManagerLog() {
     auto start_time = m_clock::now();
     m_condition_json_root["start_time_human"] = timeToString<m_clock>(start_time);
     m_condition_json_root["start_time"] = timeToJson<m_clock>(start_time); 
-    updateConditionManagerLog(start_time, true);
+    updateConditionManagerLog(true, start_time);
 }
 
-void LoggingManager::updateConditionManagerLog(m_clock::time_point log_time, bool first_time) {
+void LoggingManager::updateConditionManagerLog(bool first_time, m_clock::time_point log_time) {
     std::cout << "Updating conditions log" << std::endl;
 
     m_condition_json_root["conditions_changed"] = !first_time;
     
     Json::Value this_condition;
-    
     Json::Value hv_values;
-    hv_values["hv_0_set"] = m_conditions.getHVPMTSetValues()[0];
-    this_condition["hv_values"] = hv_values;
+
+    // Lock the conditions manager to read all the values at once
+    std::lock_guard<std::mutex> lock(m_conditions.getLock());
     
+    for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+        hv_values[ "hv_" + std::to_string(id) + "_setValue" ] = m_conditions.getHVPMTSetValue(id);
+        hv_values[ "hv_" + std::to_string(id) + "_readValue" ] = m_conditions.getHVPMTReadValue(id);
+        hv_values[ "hv_" + std::to_string(id) + "_setState" ] = m_conditions.getHVPMTSetState(id);
+        hv_values[ "hv_" + std::to_string(id) + "_readState" ] = m_conditions.getHVPMTReadState(id);
+    }
+    
+    this_condition["hv_values"] = hv_values;
     this_condition["time"] = timeToJson<m_clock>(log_time); 
     
     m_condition_json_list.append(this_condition);

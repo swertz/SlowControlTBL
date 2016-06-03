@@ -16,19 +16,21 @@ class Interface;
  */
 class LoggingManager {
   public:
+      
+      using m_clock = std::chrono::system_clock;
 
       LoggingManager(Interface& m_interface, uint32_t m_continuous_log_time = 1000, uint32_t m_interface_refresh_time = 250);
       ~LoggingManager() {};
 
       void run();
       void stop();
+      
+      // Public: if interface changes something during a run, we have to update
+      void updateConditionManagerLog(bool first_time = false, m_clock::time_point log_time = m_clock::now());
   
   private:
         
-      using m_clock = std::chrono::system_clock;
-
       void initConditionManagerLog();
-      void updateConditionManagerLog(m_clock::time_point log_time, bool first_time = false);
       void finalizeConditionManagerLog();
       
       void initContinuousLog();

@@ -2,8 +2,10 @@
 #include <chrono>
 #include <algorithm>
 #include <exception>
+#include <cstddef>
 
 #include "ConditionManager.h"
+#include "Interface.h"
 
 #include "VmeUsbBridge.h"
 #include "HV.h"
@@ -52,8 +54,20 @@ bool ConditionManager::setState(ConditionManager::State state) {
     return true;
 }
 
-void ConditionManager::setHVPMTValue(int HVNumber, int HVValue) {
-    m_hvpmt_setValues.at(HVNumber) = HVValue;
+void ConditionManager::setHVPMTValue(std::size_t id, int value) {
+    if (m_hvpmt.at(id).setValue == value)
+        return;
+
+    m_hvpmt.at(id).valueChanged = true;
+    m_hvpmt.at(id).setValue = value;
+}
+
+void ConditionManager::setHVPMTState(std::size_t id, int state) {
+    if (m_hvpmt.at(id).setState == state)
+        return;
+
+    m_hvpmt.at(id).stateChanged = true;
+    m_hvpmt.at(id).setState = state;
 }
 
 void ConditionManager::startDaemons() {
@@ -74,9 +88,18 @@ void ConditionManager::daemonHV() {
     while(m_state == State::running) {
         // wait some time
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
-        // - request reading: get promise from card
-        // - await response: read promise from card
+       
+        for (std::size_t id = 0; id < m_hvpmt.size(); id++) {
+            if (m_hvpmt.at(id).stateChanged) {
+                if (m_hvpmt.at(id).setState)
+                    m_interface.getSetupManager()->switchHVPMTON(id);
+                else
+                    m_interface.getSetupManager()->switchHVPMTOFF(id);
+            }
+            if (m_hvpmt.at(id).valueChanged) {
+                m_interface.getSetupManager()->setHVPMT(id);
+            }
+        }
     }
 }
 

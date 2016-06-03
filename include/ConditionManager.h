@@ -7,15 +7,23 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <cstddef>
+
+class Interface;
 
 class ConditionManager {
     
     public:
 
-        ConditionManager(): 
-            m_hvpmt_setStates({1, 1, 1, 0}),
-            m_hvpmt_setValues({1025, 925, 1225, 0}),
-            m_state(State::idle)
+        ConditionManager(Interface& m_interface):
+            m_interface(m_interface),
+            m_state(State::idle),
+            m_hvpmt({
+                    { 1025, 0, false, 1, 0, false },
+                    { 925, 0, false, 1, 0, false },
+                    { 1225, 0, false, 1, 0, false },
+                    { 0, 0, false, 0, 0, false }
+                    })
         {
 
             // for testing purposes
@@ -38,6 +46,19 @@ class ConditionManager {
             idle,
             configured,
             running
+        };
+
+        /*
+         * Aggregate for an HV card:
+         * Set/actual HV value and card state
+         */
+        struct HVPMT {
+            int setValue;
+            int readValue;
+            bool valueChanged;
+            int setState;
+            int readState;
+            bool stateChanged;
         };
 
         /*
@@ -72,9 +93,13 @@ class ConditionManager {
          * Define/retrieve the PMT HV value (no action taken on the setup)
          * So far, this is a vector with entry==channel
          */
-        void setHVPMTValue(int HVNumber, int HVValue);
-        const std::vector<int>& getHVPMTSetValues() const { return m_hvpmt_setValues; }
-        const std::vector<int>& getHVPMTSetStates() const { return m_hvpmt_setStates; }
+        void setHVPMTValue(std::size_t id, int value);
+        void setHVPMTState(std::size_t id, int state);
+        int getHVPMTSetValue(std::size_t id) const { return m_hvpmt.at(id).setValue; }
+        int getHVPMTReadValue(std::size_t id) const { return m_hvpmt.at(id).readValue; }
+        int getHVPMTSetState(std::size_t id) const { return m_hvpmt.at(id).setState; }
+        int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
+        std::size_t getNHVPMT() const { return m_hvpmt.size(); }
 
         /*
          * Daemons: will run as threads in the background,
@@ -93,11 +118,11 @@ class ConditionManager {
 
         std::mutex m_mtx;
 
+        Interface& m_interface;
         std::atomic<State> m_state;
 
         std::thread thread_handle_HV;
         std::thread thread_handle_TDC;
 
-        std::vector<int> m_hvpmt_setValues;
-        std::vector<int> m_hvpmt_setStates;
+        std::vector<HVPMT> m_hvpmt;
 };
