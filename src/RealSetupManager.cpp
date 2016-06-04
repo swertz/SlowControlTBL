@@ -6,6 +6,7 @@
 
 #include "RealSetupManager.h"
 #include "Interface.h"
+#include "ConditionManager.h"
 
 RealSetupManager::RealSetupManager(Interface& m_interface):
     m_interface(m_interface),

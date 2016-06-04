@@ -7,6 +7,7 @@
 #include <json/writer.h>
 
 #include "LoggingManager.h"
+#include "ConditionManager.h"
 #include "Interface.h"
 #include "Utils.h"
 

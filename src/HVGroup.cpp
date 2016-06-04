@@ -5,6 +5,7 @@
 
 #include "HVGroup.h"
 #include "Interface.h"
+#include "ConditionManager.h"
 
 HVGroup::HVGroup(Interface& m_interface):
     m_interface(m_interface),

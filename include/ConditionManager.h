@@ -9,6 +9,12 @@
 #include <string>
 #include <cstddef>
 
+#include "SetupManager.h"
+#include "Interface.h"
+#include "RealSetupManager.h"
+#include "FakeSetupManager.h"
+#include "VmeUsbBridge.h"
+
 class Interface;
 
 class ConditionManager {
@@ -25,6 +31,18 @@ class ConditionManager {
                     { 0, 0, false, 0, 0, false }
                     })
         {
+            std::cout << "Checking if the PC is connected to board..." << std::endl;
+            UsbController *dummy_controller = new UsbController(DEBUG);
+            bool canTalkToBoards = (dummy_controller->getStatus() == 0);
+            std::cout << "Deleting dummy USB controller..." << std::endl;
+            delete dummy_controller;
+            if (canTalkToBoards) {
+                std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
+                m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
+            } else {
+                std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
+                m_setup_manager = std::make_shared<FakeSetupManager>();
+            }
 
             // for testing purposes
             setState(State::configured);
@@ -125,4 +143,6 @@ class ConditionManager {
         std::thread thread_handle_TDC;
 
         std::vector<HVPMT> m_hvpmt;
+        
+        std::shared_ptr<SetupManager> m_setup_manager;
 };

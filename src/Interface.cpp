@@ -7,28 +7,14 @@
 #include <QGroupBox>
 
 #include "Interface.h"
-#include "SetupManager.h"
-#include "RealSetupManager.h"
-#include "FakeSetupManager.h"
-#include "VmeUsbBridge.h"
+#include "LoggingManager.h"
+#include "ConditionManager.h"
+#include "HVGroup.h"
 
 Interface::Interface(QWidget *parent): 
     QWidget(parent),
     m_conditions(new ConditionManager(*this)),
     running(false) {
-
-        std::cout << "Checking if the PC is connected to board..." << std::endl;
-        UsbController *dummy_controller = new UsbController(DEBUG);
-        bool canTalkToBoards = (dummy_controller->getStatus() == 0);
-        std::cout << "Deleting dummy USB controller..." << std::endl;
-        delete dummy_controller;
-        if (canTalkToBoards) {
-            std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
-            m_setup_manager = std::make_shared<RealSetupManager>(*this);
-        } else {
-            std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
-            m_setup_manager = std::make_shared<FakeSetupManager>();
-        }
 
         std::cout << "Creating Interface. Qt version: " << qVersion() << "." << std::endl;
         QGridLayout *master_grid = new QGridLayout();

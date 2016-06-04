@@ -92,12 +92,12 @@ void ConditionManager::daemonHV() {
         for (std::size_t id = 0; id < m_hvpmt.size(); id++) {
             if (m_hvpmt.at(id).stateChanged) {
                 if (m_hvpmt.at(id).setState)
-                    m_interface.getSetupManager()->switchHVPMTON(id);
+                    m_setup_manager->switchHVPMTON(id);
                 else
-                    m_interface.getSetupManager()->switchHVPMTOFF(id);
+                    m_setup_manager->switchHVPMTOFF(id);
             }
             if (m_hvpmt.at(id).valueChanged) {
-                m_interface.getSetupManager()->setHVPMT(id);
+                m_setup_manager->setHVPMT(id);
             }
         }
     }

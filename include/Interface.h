@@ -9,17 +9,9 @@
 #include <thread>
 #include <memory>
 
-//#include <unistd.h>
-//#include <sys/param.h>
-
-#include "SetupManager.h"
-#include "RealSetupManager.h"
-#include "FakeSetupManager.h"
-
-#include "LoggingManager.h"
-#include "ConditionManager.h"
-#include "HVGroup.h"
-
+class ConditionManager;
+class LoggingManager;
+class HVGroup;
 
 class Interface : public QWidget {
     friend class HVGroup;
@@ -29,21 +21,13 @@ class Interface : public QWidget {
     public:
         Interface(QWidget *parent = 0);
 
-        /*
-         * FIXME
-         */
-        virtual ~Interface() {
-            m_logging_manager.reset(); 
-            m_conditions.reset();
-            m_setup_manager.reset();
-        }
+        virtual ~Interface() {}
 
         ConditionManager& getConditions();
 
         void notifyUpdate();
 
         bool isRunning() const { return running; }
-        const std::shared_ptr<SetupManager>& getSetupManager() const { return m_setup_manager; }
 
     public slots:
         void updateConditionLog();
@@ -60,8 +44,6 @@ class Interface : public QWidget {
         std::shared_ptr<LoggingManager> m_logging_manager;
         std::shared_ptr<ConditionManager> m_conditions;
         std::thread thread_handler;
-
-        std::shared_ptr<SetupManager> m_setup_manager;
 
         bool running;
 };
