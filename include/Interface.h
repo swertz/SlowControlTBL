@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QGridLayout>
+#include <QTimer>
 
 #include <thread>
 #include <memory>
@@ -25,12 +26,11 @@ class Interface : public QWidget {
 
         ConditionManager& getConditions();
 
-        void notifyUpdate();
-
         bool isRunning() const { return running; }
 
     public slots:
         void updateConditionLog();
+        void notifyUpdate();
 
     private slots:
         void startLoggingManager();
@@ -41,6 +41,10 @@ class Interface : public QWidget {
         void setCounter(int i);
 
         HVGroup* m_hv_group;
+        
+        // Use a timer to refresh the interface periodically
+        QTimer* m_timer;
+        
         std::shared_ptr<LoggingManager> m_logging_manager;
         std::shared_ptr<ConditionManager> m_conditions;
         std::thread thread_handler;

@@ -1,6 +1,7 @@
 #include <QString>
 
 #include <memory>
+#include <mutex>
 #include <cstddef>
 
 #include "HVGroup.h"
@@ -15,7 +16,7 @@ HVGroup::HVGroup(Interface& m_interface):
 
         m_layout = new QGridLayout();
 
-        for (int hv_id = 0; hv_id < m_interface.getConditions().getNHVPMT(); hv_id++) {
+        for (int hv_id = 0; hv_id < m_interface.m_conditions->getNHVPMT(); hv_id++) {
             int setHVValue = m_interface.m_conditions->getHVPMTSetValue(hv_id);
             
             HVEntry hventry;
@@ -68,39 +69,45 @@ HVGroup::HVGroup(Interface& m_interface):
 //    }
 //}
 
+void HVGroup::notifyUpdate() {
+    std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
+
+    if (m_interface.m_conditions->getHVPMTReadState(0)) {
+        m_on_btn->hide();
+        m_off_btn->show();
+    } else {
+        m_off_btn->hide();
+        m_on_btn->show();
+    }
+}
+
 void HVGroup::switchON() {
-    //m_interface.getSetupManager()->switchHVPMTON();
-    
+    std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
+
     // Update Condition manager with new HV states
     for (std::size_t id = 0; id < m_hventries.size(); id++) {
         m_interface.m_conditions->setHVPMTState(id, 1);
     }
-    
-    //m_on_btn->hide();
-    //m_off_btn->show();
 }
 
 void HVGroup::switchOFF() {
-    //m_interface.getSetupManager()->switchHVPMTOFF();
-    
+    std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
+
     // Update Condition manager with new HV states
     for (std::size_t id = 0; id < m_hventries.size(); id++) {
         m_interface.m_conditions->setHVPMTState(id, 0);
     }
-    
-    //m_off_btn->hide();
-    //m_on_btn->show();
 }
 
 void HVGroup::setHV() {
+    std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
+
     // Update Condition manager with new HV set values
     for (std::size_t id = 0; id < m_hventries.size(); id++) {
         HVEntry hventry = m_hventries.at(id);
         hventry.value_label = new QLabel(QString::number(hventry.spin_box->value()));
         m_interface.m_conditions->setHVPMTValue(id, hventry.spin_box->value());
     }
-    // Set physically the HV values
-    //m_interface.getSetupManager()->setHVPMT();
 }
 
 void HVGroup::setRunning() {

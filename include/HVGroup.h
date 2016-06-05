@@ -28,6 +28,9 @@ class HVGroup : public QWidget {
             QSpinBox *spin_box;
         };
 
+    public:
+        void notifyUpdate();
+
     private slots:
         //void valueChanged(int m_hv);
         void setRunning();

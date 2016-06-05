@@ -25,9 +25,9 @@ class ConditionManager {
             m_interface(m_interface),
             m_state(State::idle),
             m_hvpmt({
-                    { 1025, 0, false, 1, 0, false },
-                    { 925, 0, false, 1, 0, false },
-                    { 1225, 0, false, 1, 0, false },
+                    { 1025, 1025, false, 0, 0, false },
+                    { 925, 925, false, 0, 0, false },
+                    { 1225, 1225, false, 0, 0, false },
                     { 0, 0, false, 0, 0, false }
                     })
         {
@@ -103,9 +103,8 @@ class ConditionManager {
          */
         static bool checkTransition(ConditionManager::State state_from, ConditionManager::State state_to);
         
-        void lock() { m_mtx.lock(); }
-        void unlock() { m_mtx.unlock(); }
-        std::mutex& getLock() { return m_mtx; }
+        std::mutex& getHVLock() { return m_hv_mtx; }
+        std::mutex& getTDCLock() { return m_tdc_mtx; }
 
         /*
          * Define/retrieve the PMT HV value (no action taken on the setup)
@@ -134,7 +133,8 @@ class ConditionManager {
 
     private:
 
-        std::mutex m_mtx;
+        std::mutex m_hv_mtx;
+        std::mutex m_tdc_mtx;
 
         Interface& m_interface;
         std::atomic<State> m_state;

@@ -88,18 +88,27 @@ void ConditionManager::daemonHV() {
     while(m_state == State::running) {
         // wait some time
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-       
+      
+        std::lock_guard<std::mutex> m_lock(m_hv_mtx);
+
         for (std::size_t id = 0; id < m_hvpmt.size(); id++) {
             if (m_hvpmt.at(id).stateChanged) {
                 if (m_hvpmt.at(id).setState)
                     m_setup_manager->switchHVPMTON(id);
                 else
                     m_setup_manager->switchHVPMTOFF(id);
+                m_hvpmt.at(id).stateChanged = false;
             }
             if (m_hvpmt.at(id).valueChanged) {
                 m_setup_manager->setHVPMT(id);
+                m_hvpmt.at(id).valueChanged = false;
             }
+       
+            // FIXME
+            m_hvpmt.at(id).readState = m_hvpmt.at(id).setState;
+            m_hvpmt.at(id).readValue = m_hvpmt.at(id).setValue;
         }
+
     }
 }
 

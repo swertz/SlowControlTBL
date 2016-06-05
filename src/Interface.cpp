@@ -5,6 +5,7 @@
 #include <QGridLayout>
 #include <QVBoxLayout>
 #include <QGroupBox>
+#include <QTimer>
 
 #include "Interface.h"
 #include "LoggingManager.h"
@@ -43,8 +44,11 @@ Interface::Interface(QWidget *parent):
         connect(quit, &QPushButton::clicked, this, &Interface::stopLoggingManager);
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
-        resize(500, 200);
-        //showFullScreen();
+        resize(800, 600);
+        
+        m_timer = new QTimer(this);
+        connect(m_timer, &QTimer::timeout, this, &Interface::notifyUpdate);
+        m_timer->start(250);
     }
 
 ConditionManager& Interface::getConditions() {
@@ -52,6 +56,7 @@ ConditionManager& Interface::getConditions() {
 }
 
 void Interface::notifyUpdate() {
+    m_hv_group->notifyUpdate();
 }
 
 void Interface::updateConditionLog() {
