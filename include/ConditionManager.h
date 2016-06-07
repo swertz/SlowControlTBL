@@ -110,8 +110,8 @@ class ConditionManager {
          * Define/retrieve the PMT HV value (no action taken on the setup)
          * So far, this is a vector with entry==channel
          */
-        void setHVPMTValue(std::size_t id, int value);
-        void setHVPMTState(std::size_t id, int state);
+        int setHVPMTValue(std::size_t id, int value);
+        bool setHVPMTState(std::size_t id, int state);
         int getHVPMTSetValue(std::size_t id) const { return m_hvpmt.at(id).setValue; }
         int getHVPMTReadValue(std::size_t id) const { return m_hvpmt.at(id).readValue; }
         int getHVPMTSetState(std::size_t id) const { return m_hvpmt.at(id).setState; }

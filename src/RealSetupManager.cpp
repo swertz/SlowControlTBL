@@ -20,24 +20,21 @@ RealSetupManager::~RealSetupManager() {
     }
 }
 
-void RealSetupManager::setHVPMT(std::size_t id) {
+bool RealSetupManager::setHVPMT(std::size_t id) {
     std::cout << "Setting the HV PMT..." << std::endl;
     
     int set_hv_value = m_interface.getConditions().getHVPMTSetValue(id);
-    m_hvpmt.setChV(set_hv_value, id);
-    std::cout << "  HV " << id << " set to " << set_hv_value << " volts." << std::endl;
+    return m_hvpmt.setChV(set_hv_value, id) == 1;
 }
 
-void RealSetupManager::switchHVPMTON(std::size_t id) {
+bool RealSetupManager::switchHVPMTON(std::size_t id) {
     std::cout << "Switching the HV PMT ON..." << std::endl;
     
-    m_hvpmt.setChState(1, id);
-    std::cout << "  HV " << id << " switched to state 1." <<  std::endl;
+    return m_hvpmt.setChState(1, id) == 1;
 }
 
-void RealSetupManager::switchHVPMTOFF(std::size_t id) {
+bool RealSetupManager::switchHVPMTOFF(std::size_t id) {
     std::cout << "Switching the HV PMT OFF..." << std::endl;
     
-    m_hvpmt.setChState(0, id);
-    std::cout << "  HV " << id << " switched to state 0." <<  std::endl;
+    return m_hvpmt.setChState(0, id) == 1;
 }

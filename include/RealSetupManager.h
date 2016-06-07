@@ -18,9 +18,9 @@ class RealSetupManager: public SetupManager {
          */
         virtual ~RealSetupManager() override;
 
-        virtual void setHVPMT(size_t id) override;
-        virtual void switchHVPMTON(size_t id) override;
-        virtual void switchHVPMTOFF(size_t id) override;
+        virtual bool setHVPMT(size_t id) override;
+        virtual bool switchHVPMTON(size_t id) override;
+        virtual bool switchHVPMTOFF(size_t id) override;
 
     private:
 

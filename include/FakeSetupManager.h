@@ -10,7 +10,7 @@ class FakeSetupManager: public SetupManager {
 
         virtual ~FakeSetupManager() override {};
 
-        virtual void setHVPMT(std::size_t id) override;
-        virtual void switchHVPMTON(std::size_t id) override;
-        virtual void switchHVPMTOFF(std::size_t id) override;
+        virtual bool setHVPMT(std::size_t id) override;
+        virtual bool switchHVPMTON(std::size_t id) override;
+        virtual bool switchHVPMTOFF(std::size_t id) override;
 };

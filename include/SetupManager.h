@@ -6,7 +6,7 @@ class SetupManager {
     public:
         virtual ~SetupManager() {};
 
-        virtual void setHVPMT(std::size_t id) = 0;
-        virtual void switchHVPMTON(std::size_t id) = 0;
-        virtual void switchHVPMTOFF(std::size_t id) = 0;
+        virtual bool setHVPMT(std::size_t id) = 0;
+        virtual bool switchHVPMTON(std::size_t id) = 0;
+        virtual bool switchHVPMTOFF(std::size_t id) = 0;
 };

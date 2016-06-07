@@ -30,7 +30,7 @@ HVGroup::HVGroup(Interface& m_interface):
             hventry.spin_box->setSingleStep(1);
             hventry.spin_box->setValue(setHVValue);
             
-            hventry.value_label = new QLabel(std::to_string(hventry.spin_box->value()).c_str());
+            hventry.value_label = new QLabel(QString::number(hventry.spin_box->value()));
             hventry.value_label->hide();
             
             //connect(hventry.spin_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &HVGroup::valueChanged);
@@ -105,8 +105,8 @@ void HVGroup::setHV() {
     // Update Condition manager with new HV set values
     for (std::size_t id = 0; id < m_hventries.size(); id++) {
         HVEntry hventry = m_hventries.at(id);
-        hventry.value_label = new QLabel(QString::number(hventry.spin_box->value()));
-        m_interface.m_conditions->setHVPMTValue(id, hventry.spin_box->value());
+        int new_value = m_interface.m_conditions->setHVPMTValue(id, hventry.spin_box->value());
+        hventry.value_label->setText(QString::number(new_value));
     }
 }
 
