@@ -1,12 +1,16 @@
 #pragma once
 
+#include <cstddef>
+
 #include "SetupManager.h"
 
-class FakeSetupManager : public SetupManager {
+class FakeSetupManager: public SetupManager {
     
     public:
 
-        virtual void setHVPMT() override;
-        virtual void switchHVPMTON() override;
-        virtual void switchHVPMTOFF() override;
+        virtual ~FakeSetupManager() override {};
+
+        virtual bool setHVPMT(std::size_t id) override;
+        virtual bool switchHVPMTON(std::size_t id) override;
+        virtual bool switchHVPMTOFF(std::size_t id) override;
 };

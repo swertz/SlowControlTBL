@@ -1,19 +1,26 @@
 #pragma once
 
+#include <cstddef>
+
 #include "SetupManager.h"
 #include "VmeUsbBridge.h"
 #include "HV.h"
 
 class Interface;
 
-class RealSetupManager : public SetupManager {
+class RealSetupManager: public SetupManager {
     public:
 
         RealSetupManager(Interface& m_interface);
+        
+        /*
+         * Destructor: turn the HV off
+         */
+        virtual ~RealSetupManager() override;
 
-        virtual void setHVPMT() override;
-        virtual void switchHVPMTON() override;
-        virtual void switchHVPMTOFF() override;
+        virtual bool setHVPMT(size_t id) override;
+        virtual bool switchHVPMTON(size_t id) override;
+        virtual bool switchHVPMTOFF(size_t id) override;
 
     private:
 

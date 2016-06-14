@@ -2,8 +2,10 @@
 #include <chrono>
 #include <algorithm>
 #include <exception>
+#include <cstddef>
 
 #include "ConditionManager.h"
+#include "Interface.h"
 
 #include "VmeUsbBridge.h"
 #include "HV.h"
@@ -52,8 +54,34 @@ bool ConditionManager::setState(ConditionManager::State state) {
     return true;
 }
 
-void ConditionManager::setHVPMTValue(int HVNumber, int HVValue) {
-    m_hvpmt_setValues.at(HVNumber) = HVValue;
+int ConditionManager::setHVPMTValue(std::size_t id, int value) {
+    if (m_hvpmt.at(id).setValue == value)
+        return value;
+
+    bool result = m_setup_manager->setHVPMT(id);
+
+    if (result) {
+        m_hvpmt.at(id).setValue = value;
+    }
+
+    return m_hvpmt.at(id).setValue;
+}
+
+bool ConditionManager::setHVPMTState(std::size_t id, int state) {
+    if (m_hvpmt.at(id).setState == state)
+        return false;
+                
+    bool result;
+    if (state)
+        result = m_setup_manager->switchHVPMTON(id);
+    else
+        result = m_setup_manager->switchHVPMTOFF(id);
+
+    if (result) {
+        m_hvpmt.at(id).setState = state;
+    }
+
+    return result;
 }
 
 void ConditionManager::startDaemons() {
@@ -74,9 +102,15 @@ void ConditionManager::daemonHV() {
     while(m_state == State::running) {
         // wait some time
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
-        // - request reading: get promise from card
-        // - await response: read promise from card
+      
+        std::lock_guard<std::mutex> m_lock(m_hv_mtx);
+
+        for (std::size_t id = 0; id < m_hvpmt.size(); id++) {
+            // FIXME
+            m_hvpmt.at(id).readState = m_hvpmt.at(id).setState;
+            m_hvpmt.at(id).readValue = m_hvpmt.at(id).setValue;
+        }
+
     }
 }
 

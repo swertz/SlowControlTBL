@@ -1,12 +1,17 @@
 #include "FakeSetupManager.h"
 
-void FakeSetupManager::setHVPMT() {
+#include <cstddef>
+
+bool FakeSetupManager::setHVPMT(std::size_t id) {
+    return true;
 }
 
-void FakeSetupManager::switchHVPMTON() {
+bool FakeSetupManager::switchHVPMTON(std::size_t id) {
+    return true;
 }
 
-void FakeSetupManager::switchHVPMTOFF() {
+bool FakeSetupManager::switchHVPMTOFF(std::size_t id) {
+    return true;
 }
 
 

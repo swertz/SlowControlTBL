@@ -7,17 +7,42 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <cstddef>
+
+#include "SetupManager.h"
+#include "Interface.h"
+#include "RealSetupManager.h"
+#include "FakeSetupManager.h"
+#include "VmeUsbBridge.h"
+
+class Interface;
 
 class ConditionManager {
     
     public:
 
-        ConditionManager(): 
-            counter(0),
-            m_hvpmt_setStates({1, 1, 1, 0}),
-            m_hvpmt_setValues({1025, 925, 1225, 0}),
-            m_state(State::idle)
+        ConditionManager(Interface& m_interface):
+            m_interface(m_interface),
+            m_state(State::idle),
+            m_hvpmt({
+                    { 1025, 1025, false, 0, 0, false },
+                    { 925, 925, false, 0, 0, false },
+                    { 1225, 1225, false, 0, 0, false },
+                    { 0, 0, false, 0, 0, false }
+                    })
         {
+            std::cout << "Checking if the PC is connected to board..." << std::endl;
+            UsbController *dummy_controller = new UsbController(DEBUG);
+            bool canTalkToBoards = (dummy_controller->getStatus() == 0);
+            std::cout << "Deleting dummy USB controller..." << std::endl;
+            delete dummy_controller;
+            if (canTalkToBoards) {
+                std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
+                m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
+            } else {
+                std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
+                m_setup_manager = std::make_shared<FakeSetupManager>();
+            }
 
             // for testing purposes
             setState(State::configured);
@@ -39,6 +64,19 @@ class ConditionManager {
             idle,
             configured,
             running
+        };
+
+        /*
+         * Aggregate for an HV card:
+         * Set/actual HV value and card state
+         */
+        struct HVPMT {
+            int setValue;
+            int readValue;
+            bool valueChanged;
+            int setState;
+            int readState;
+            bool stateChanged;
         };
 
         /*
@@ -65,19 +103,20 @@ class ConditionManager {
          */
         static bool checkTransition(ConditionManager::State state_from, ConditionManager::State state_to);
         
-        void lock() { m_mtx.lock(); }
-        void unlock() { m_mtx.unlock(); }
-        std::mutex& getLock() { return m_mtx; }
+        std::mutex& getHVLock() { return m_hv_mtx; }
+        std::mutex& getTDCLock() { return m_tdc_mtx; }
 
-        void setCounter(int c) { counter = c; }
-        int getCounter() const { return counter; }
         /*
          * Define/retrieve the PMT HV value (no action taken on the setup)
          * So far, this is a vector with entry==channel
          */
-        void setHVPMTValue(int HVNumber, int HVValue);
-        const std::vector<int>& getHVPMTSetValues() const { return m_hvpmt_setValues; }
-        const std::vector<int>& getHVPMTSetStates() const { return m_hvpmt_setStates; }
+        int setHVPMTValue(std::size_t id, int value);
+        bool setHVPMTState(std::size_t id, int state);
+        int getHVPMTSetValue(std::size_t id) const { return m_hvpmt.at(id).setValue; }
+        int getHVPMTReadValue(std::size_t id) const { return m_hvpmt.at(id).readValue; }
+        int getHVPMTSetState(std::size_t id) const { return m_hvpmt.at(id).setState; }
+        int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
+        std::size_t getNHVPMT() const { return m_hvpmt.size(); }
 
         /*
          * Daemons: will run as threads in the background,
@@ -94,15 +133,16 @@ class ConditionManager {
 
     private:
 
-        std::atomic<int> counter;
+        std::mutex m_hv_mtx;
+        std::mutex m_tdc_mtx;
 
-        std::mutex m_mtx;
-
+        Interface& m_interface;
         std::atomic<State> m_state;
 
         std::thread thread_handle_HV;
         std::thread thread_handle_TDC;
 
-        std::vector<int> m_hvpmt_setValues;
-        std::vector<int> m_hvpmt_setStates;
+        std::vector<HVPMT> m_hvpmt;
+        
+        std::shared_ptr<SetupManager> m_setup_manager;
 };

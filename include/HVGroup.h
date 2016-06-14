@@ -9,6 +9,7 @@
 #include <QPushButton>
 
 #include <memory>
+#include <cstddef>
 
 class Interface;
 
@@ -20,12 +21,15 @@ class HVGroup : public QWidget {
     public:
         HVGroup(Interface& m_interface);
         virtual ~HVGroup() {}
+        
         struct HVEntry {
             QLabel *label;
             QLabel *value_label;
             QSpinBox *spin_box;
         };
 
+    public:
+        void notifyUpdate();
 
     private slots:
         //void valueChanged(int m_hv);

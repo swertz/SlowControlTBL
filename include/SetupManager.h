@@ -1,10 +1,12 @@
 #pragma once
 
-#include <vector>
+#include <cstddef>
 
 class SetupManager {
     public:
-        virtual void setHVPMT() = 0;
-        virtual void switchHVPMTON() = 0;
-        virtual void switchHVPMTOFF() = 0;
+        virtual ~SetupManager() {};
+
+        virtual bool setHVPMT(std::size_t id) = 0;
+        virtual bool switchHVPMTON(std::size_t id) = 0;
+        virtual bool switchHVPMTOFF(std::size_t id) = 0;
 };
