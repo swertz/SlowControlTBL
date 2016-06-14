@@ -7,6 +7,7 @@
 #include <QSpinBox>
 #include <QGridLayout>
 #include <QPushButton>
+#include <QCheckBox>
 
 #include <memory>
 #include <cstddef>
@@ -24,15 +25,17 @@ class HVGroup : public QWidget {
         
         struct HVEntry {
             QLabel *label;
-            QLabel *value_label;
-            QSpinBox *spin_box;
+            QLabel *setValue_label;
+            QLabel *readValue_label;
+            QLabel *readCurrent_label;
+            QSpinBox *sb_set_value;
+            QCheckBox *cb_set_state;
         };
 
     public:
         void notifyUpdate();
 
     private slots:
-        //void valueChanged(int m_hv);
         void setRunning();
         void setNotRunning();
         void switchON();

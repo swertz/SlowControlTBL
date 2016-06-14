@@ -44,7 +44,7 @@ Interface::Interface(QWidget *parent):
         connect(quit, &QPushButton::clicked, this, &Interface::stopLoggingManager);
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
-        resize(800, 600);
+        resize(1000, 300);
         
         m_timer = new QTimer(this);
         connect(m_timer, &QTimer::timeout, this, &Interface::notifyUpdate);
