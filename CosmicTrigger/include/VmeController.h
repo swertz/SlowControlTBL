@@ -33,6 +33,7 @@ class vmeController  {
         virtual int readData(long unsigned int address,void* data,AddressModifier AM, DataWidth DW) = 0; ///<Read data function using given mode.
         
         void setVerbose(int verbose){ this->verbose = verbose; } ///< Sets verbosity level
+        int getVerbose() { return verbose; }
         
         virtual AddressModifier getAM(void) = 0; ///<Gets default mode
         virtual DataWidth getDW(void) = 0; ///<Gets default mode

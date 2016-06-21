@@ -114,9 +114,9 @@ class vmeBoard{
     
     private:
         
+        vmeController *cont; ///<Pointer to the controller. Only this class can access it.
         AddressModifier AM; ///< Stored AM value
         DataWidth DW; ///<Stored DW value
-        vmeController *cont; ///<Pointer to the controller. Only this class can access it.
 };
 
 #endif

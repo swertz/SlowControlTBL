@@ -6,7 +6,7 @@ vmeBoard::vmeBoard(vmeController* cont, AddressModifier AM, DataWidth DW):
     DW(DW) {}
 
 bool vmeBoard::vLevel(coutLevel level) {
-    return cont->verbose >= (int)level;
+    return cont->getVerbose() >= (int)level;
 }
 
 int vmeBoard::writeData(long unsigned int add, void *DATA) {
