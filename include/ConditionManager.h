@@ -25,10 +25,10 @@ class ConditionManager {
             m_interface(m_interface),
             m_state(State::idle),
             m_hvpmt({
-                    { 1025, 1025, false, 0, 0, false },
-                    { 925, 925, false, 0, 0, false },
-                    { 1225, 1225, false, 0, 0, false },
-                    { 0, 0, false, 0, 0, false }
+                    { 1025, 0, 0, false, true, false },
+                    { 925, 0, 0, false, true, false },
+                    { 1225, 0, 0, false, true, false },
+                    { 0, 0, 0, false, false, false }
                     })
         {
             std::cout << "Checking if the PC is connected to board..." << std::endl;
@@ -41,7 +41,7 @@ class ConditionManager {
                 m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
             } else {
                 std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
-                m_setup_manager = std::make_shared<FakeSetupManager>();
+                m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
             }
 
             // for testing purposes
@@ -73,9 +73,10 @@ class ConditionManager {
         struct HVPMT {
             int setValue;
             int readValue;
+            int readCurrent;
             bool valueChanged;
-            int setState;
-            int readState;
+            bool setState;
+            //int readState;
             bool stateChanged;
         };
 
@@ -107,15 +108,18 @@ class ConditionManager {
         std::mutex& getTDCLock() { return m_tdc_mtx; }
 
         /*
-         * Define/retrieve the PMT HV value (no action taken on the setup)
+         * Define/retrieve/propagate the PMT HV conditions
          * So far, this is a vector with entry==channel
          */
-        int setHVPMTValue(std::size_t id, int value);
-        bool setHVPMTState(std::size_t id, int state);
+        void setHVPMTValue(std::size_t id, int value) { m_hvpmt.at(id).setValue = value; }
+        void setHVPMTState(std::size_t id, bool state) { m_hvpmt.at(id).setState = state; }
+        bool propagateHVPMTValue(std::size_t id);
+        bool propagateHVPMTState(std::size_t id);
         int getHVPMTSetValue(std::size_t id) const { return m_hvpmt.at(id).setValue; }
         int getHVPMTReadValue(std::size_t id) const { return m_hvpmt.at(id).readValue; }
-        int getHVPMTSetState(std::size_t id) const { return m_hvpmt.at(id).setState; }
-        int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
+        int getHVPMTReadCurrent(std::size_t id) const { return m_hvpmt.at(id).readCurrent; }
+        bool getHVPMTSetState(std::size_t id) const { return m_hvpmt.at(id).setState; }
+        //int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
         std::size_t getNHVPMT() const { return m_hvpmt.size(); }
 
         /*

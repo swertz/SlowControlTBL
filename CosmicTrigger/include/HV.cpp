@@ -122,7 +122,7 @@ int hv::setChV(int volt, int channel){
 
 double ** hv::readValues(double ** val){
   if(val==0){
-    cout<<"New value vector"<<endl;
+    //cout<<"New value vector"<<endl;
     val=new double * [4]; 
     for(int i=0; i<4; i++) val[i]=new double[4];
   }

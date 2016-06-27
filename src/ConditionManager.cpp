@@ -54,32 +54,19 @@ bool ConditionManager::setState(ConditionManager::State state) {
     return true;
 }
 
-int ConditionManager::setHVPMTValue(std::size_t id, int value) {
-    if (m_hvpmt.at(id).setValue == value)
-        return value;
-
+bool ConditionManager::propagateHVPMTValue(std::size_t id) {
     bool result = m_setup_manager->setHVPMT(id);
 
-    if (result) {
-        m_hvpmt.at(id).setValue = value;
-    }
-
-    return m_hvpmt.at(id).setValue;
+    return result;
 }
 
-bool ConditionManager::setHVPMTState(std::size_t id, int state) {
-    if (m_hvpmt.at(id).setState == state)
-        return false;
-                
+bool ConditionManager::propagateHVPMTState(std::size_t id) {
     bool result;
+    bool state = getHVPMTSetState(id);
     if (state)
         result = m_setup_manager->switchHVPMTON(id);
     else
         result = m_setup_manager->switchHVPMTOFF(id);
-
-    if (result) {
-        m_hvpmt.at(id).setState = state;
-    }
 
     return result;
 }
@@ -101,14 +88,14 @@ void ConditionManager::stopDaemons() {
 void ConditionManager::daemonHV() {
     while(m_state == State::running) {
         // wait some time
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
       
         std::lock_guard<std::mutex> m_lock(m_hv_mtx);
-
-        for (std::size_t id = 0; id < m_hvpmt.size(); id++) {
-            // FIXME
-            m_hvpmt.at(id).readState = m_hvpmt.at(id).setState;
-            m_hvpmt.at(id).readValue = m_hvpmt.at(id).setValue;
+        std::vector< std::pair<double, double> > hv_values = m_setup_manager->getHVPMTValue();
+        for (std::size_t id = 0; id < hv_values.size(); id++) {
+            //m_hvpmt.at(id).readState = m_hvpmt.at(id).readState;
+            m_hvpmt.at(id).readValue = hv_values.at(id).first;
+            m_hvpmt.at(id).readCurrent = hv_values.at(id).second;
         }
 
     }
