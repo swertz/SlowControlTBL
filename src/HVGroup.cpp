@@ -132,8 +132,8 @@ void HVGroup::switchON() {
         m_interface.m_conditions->setHVPMTState(id, state);
         m_interface.m_conditions->propagateHVPMTState(id);
     }
-    m_on_btn->hide();
-    m_off_btn->show();
+    //m_on_btn->hide();
+    //m_off_btn->show();
 }
 
 void HVGroup::switchOFF() {
@@ -144,8 +144,8 @@ void HVGroup::switchOFF() {
         m_interface.m_conditions->setHVPMTState(id, 0);
         m_interface.m_conditions->propagateHVPMTState(id);
     }
-    m_on_btn->show();
-    m_off_btn->hide();
+    //m_on_btn->show();
+    //m_off_btn->hide();
 }
 
 void HVGroup::setHV() {
@@ -161,11 +161,11 @@ void HVGroup::setHV() {
 }
 
 void HVGroup::setRunning() {
-    for (HVEntry hventry: m_hventries) {
-        hventry.sb_set_value->hide();
-        hventry.setValue_label->show();
-    }
-    m_set->setDisabled(1);
+    //for (HVEntry hventry: m_hventries) {
+    //    hventry.sb_set_value->hide();
+    //    hventry.setValue_label->show();
+    //}
+    //m_set->setDisabled(1);
 }
 
 void HVGroup::setNotRunning() {
