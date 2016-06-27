@@ -107,6 +107,7 @@ void LoggingManager::updateConditionManagerLog(bool first_time, m_clock::time_po
     
     for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
         hv_values[ "hv_" + std::to_string(id) + "_setValue" ] = m_conditions.getHVPMTSetValue(id);
+        hv_values[ "hv_" + std::to_string(id) + "_readValue" ] = m_conditions.getHVPMTReadValue(id);
         hv_values[ "hv_" + std::to_string(id) + "_setState" ] = m_conditions.getHVPMTSetState(id);
     }
     
