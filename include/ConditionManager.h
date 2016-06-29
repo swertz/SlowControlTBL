@@ -29,7 +29,15 @@ class ConditionManager {
                     { 925, 0, 0, false, true, false },
                     { 1225, 0, 0, false, true, false },
                     { 0, 0, 0, false, false, false }
-                    })
+                    }),
+            m_discriChannels({
+                    {true, 5, 200},
+                    {true, 5, 200},
+                    {true, 5, 200},
+                    {false, 5, 200},
+                    {false, 5, 200}
+                    }),
+            m_channelsMajority(3)
         {
             std::cout << "Checking if the PC is connected to board..." << std::endl;
             UsbController *dummy_controller = new UsbController(DEBUG);
@@ -80,6 +88,14 @@ class ConditionManager {
             bool stateChanged;
         };
 
+        // Discri settings
+        struct DiscriChannel {
+            bool included;
+            int threshold;
+            int width;
+        };
+
+
         /*
          * Get current ConditionManager state
          */
@@ -122,6 +138,17 @@ class ConditionManager {
         //int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
         std::size_t getNHVPMT() const { return m_hvpmt.size(); }
 
+        void setDiscriChannelState(std::size_t id, bool state) { m_discriChannels.at(id).included = state; }
+        bool getDiscriChannelState(std::size_t id) const { return m_discriChannels.at(id).included; }
+        void setDiscriChannelThreshold(std::size_t id, int threshold) { m_discriChannels.at(id).threshold = threshold; }
+        int getDiscriChannelThreshold(std::size_t id) const { return m_discriChannels.at(id).threshold; }
+        void setDiscriChannelWidth(std::size_t id, int width) { m_discriChannels.at(id).width = width; }
+        int getDiscriChannelWidth(std::size_t id) const { return m_discriChannels.at(id).width; }
+        std::size_t getNDiscriChannels() const { return m_discriChannels.size(); }
+        int getChannelsMajority() const { return m_channelsMajority; }
+        void setChannelsMajority(int majority) { m_channelsMajority = majority; }
+        bool propagateDiscriSettings();
+
         /*
          * Daemons: will run as threads in the background,
          * handle the HV & TDC cards
@@ -147,6 +174,8 @@ class ConditionManager {
         std::thread thread_handle_TDC;
 
         std::vector<HVPMT> m_hvpmt;
+        std::vector<DiscriChannel> m_discriChannels;
+        int m_channelsMajority;
         
         std::shared_ptr<SetupManager> m_setup_manager;
 };

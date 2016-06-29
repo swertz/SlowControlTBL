@@ -55,7 +55,6 @@ HVGroup::HVGroup(Interface& m_interface):
             hventry.sb_set_value = new QSpinBox();
             hventry.sb_set_value->setRange(0, 2000);
             hventry.sb_set_value->setWrapping(1);
-            hventry.sb_set_value->setSingleStep(1);
             hventry.sb_set_value->setValue(setHVValue);
             
             hventry.setValue_label = new QLabel(QString::number(hventry.sb_set_value->value()));

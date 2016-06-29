@@ -27,3 +27,7 @@ std::vector< std::pair<double, double> > FakeSetupManager::getHVPMTValue() {
     }
     return hv_values;
 }
+
+bool FakeSetupManager::propagateDiscriSettings() {
+    return true;
+}

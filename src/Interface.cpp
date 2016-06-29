@@ -11,10 +11,12 @@
 #include "LoggingManager.h"
 #include "ConditionManager.h"
 #include "HVGroup.h"
+#include "DiscriSettingsWindow.h"
 
 Interface::Interface(QWidget *parent): 
     QWidget(parent),
     m_conditions(new ConditionManager(*this)),
+    m_discriTunerBtn(new QPushButton("Discriminator Settings")),
     running(false) {
 
         std::cout << "Creating Interface. Qt version: " << qVersion() << "." << std::endl;
@@ -25,22 +27,27 @@ Interface::Interface(QWidget *parent):
         
         QPushButton *startBtn = new QPushButton("Start");
         QPushButton *stopBtn = new QPushButton("Stop");
-        QPushButton *quit = new QPushButton("Quit");
         
         m_hv_group = new HVGroup(*this);
 
         run_layout->addWidget(startBtn);
         run_layout->addWidget(stopBtn);
-        run_layout->addWidget(quit);
+        //run_layout->addWidget(m_discriTunerBtn);
         run_box->setLayout(run_layout);
+        
+        QPushButton *quit = new QPushButton("Quit");
 
         master_grid->addWidget(run_box, 0, 0);
         master_grid->addWidget(m_hv_group, 0, 1);
+        // FIXME position and button dispaching 
+        master_grid->addWidget(m_discriTunerBtn, 1, 0);
+        master_grid->addWidget(quit, 2, 0);
 
         setLayout(master_grid);
 
         connect(startBtn, &QPushButton::clicked, this, &Interface::startLoggingManager);
         connect(stopBtn, &QPushButton::clicked, this, &Interface::stopLoggingManager);
+        connect(m_discriTunerBtn, &QPushButton::clicked, this, &Interface::showDiscriSettingsWindow);
         connect(quit, &QPushButton::clicked, this, &Interface::stopLoggingManager);
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
@@ -89,4 +96,15 @@ void Interface::stopLoggingManager() {
     m_hv_group->setNotRunning();
 
     running = false;
+}
+
+// When clicking the "DiscriSetting button", open a pop up window
+// and disable the button to prevent opening dozens of windows
+void Interface::showDiscriSettingsWindow() {
+    //this->hide();
+    DiscriSettingsWindow *discriSettingsWindow = new DiscriSettingsWindow(*this);
+    discriSettingsWindow->setWindowTitle("Discriminator Settings Dialog Box");
+    discriSettingsWindow->show();
+    m_discriTunerBtn->setDisabled(1);
+    m_discriTunerBtn->setText("Discriminator Settings (already open)");
 }

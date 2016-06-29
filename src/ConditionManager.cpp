@@ -61,15 +61,16 @@ bool ConditionManager::propagateHVPMTValue(std::size_t id) {
 }
 
 bool ConditionManager::propagateHVPMTState(std::size_t id) {
-    bool result;
-    bool state = getHVPMTSetState(id);
-    if (state)
-        result = m_setup_manager->switchHVPMTON(id);
+    if (getHVPMTSetState(id))
+        return m_setup_manager->switchHVPMTON(id);
     else
-        result = m_setup_manager->switchHVPMTOFF(id);
-
-    return result;
+        return m_setup_manager->switchHVPMTOFF(id);
 }
+
+bool ConditionManager::propagateDiscriSettings() {
+    return m_setup_manager->propagateDiscriSettings();
+}
+
 
 void ConditionManager::startDaemons() {
     if( setState(State::running) ) {
