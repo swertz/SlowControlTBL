@@ -11,4 +11,6 @@ class SetupManager {
         virtual bool switchHVPMTON(std::size_t id) = 0;
         virtual bool switchHVPMTOFF(std::size_t id) = 0;
         virtual std::vector< std::pair<double, double> > getHVPMTValue() = 0;
+
+        virtual bool propagateDiscriSettings() = 0;
 };

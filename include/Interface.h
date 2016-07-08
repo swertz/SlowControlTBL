@@ -13,9 +13,11 @@
 class ConditionManager;
 class LoggingManager;
 class HVGroup;
+class DiscriSettingsWindow;
 
 class Interface : public QWidget {
     friend class HVGroup;
+    friend class DiscriSettingsWindow;
     
     Q_OBJECT
 
@@ -35,6 +37,7 @@ class Interface : public QWidget {
     private slots:
         void startLoggingManager();
         void stopLoggingManager();
+        void showDiscriSettingsWindow();
 
     private:
       
@@ -50,4 +53,6 @@ class Interface : public QWidget {
         std::thread thread_handler;
 
         bool running;
+
+        QPushButton *m_discriTunerBtn;
 };

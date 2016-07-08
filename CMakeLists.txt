@@ -29,7 +29,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/include)
 
 set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/lib/libCAEN.so)
 
-qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h)
+qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h
+    include/DiscriSettingsWindow.h)
 
 set(SOURCES
     "src/main.cpp"
@@ -39,6 +40,7 @@ set(SOURCES
     "src/HVGroup.cpp"
     "src/RealSetupManager.cpp"
     "src/FakeSetupManager.cpp"
+    "src/DiscriSettingsWindow.cpp"
     ${Interfaces_SRC}
     )
 

@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "SetupManager.h"
+
 #include "VmeUsbBridge.h"
 #include "HV.h"
+#include "Discri.h"
 
 class Interface;
 
@@ -25,10 +27,14 @@ class RealSetupManager: public SetupManager {
         virtual std::vector< std::pair<double, double> > getHVPMTValue() override;
         //virtual int getHVPMTState(size_t id) override;
 
+        // Discriminator/coincidence manager
+        virtual bool propagateDiscriSettings() override;
+
     private:
 
         UsbController m_controller;
         hv m_hvpmt;
+        discri m_discri;
         
         Interface& m_interface;
 };

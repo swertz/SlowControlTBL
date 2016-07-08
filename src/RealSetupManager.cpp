@@ -3,6 +3,7 @@
 
 #include "VmeUsbBridge.h"
 #include "HV.h"
+#include "Discri.h"
 
 #include "RealSetupManager.h"
 #include "Interface.h"
@@ -11,7 +12,8 @@
 RealSetupManager::RealSetupManager(Interface& m_interface):
     m_interface(m_interface),
     m_controller(UsbController(NORMAL)),
-    m_hvpmt(hv(&m_controller, 0xF0000, 2)) 
+    m_hvpmt(hv(&m_controller, 0xF0000, 2)),
+    m_discri(discri(&m_controller))
     { }
 
 RealSetupManager::~RealSetupManager() {
@@ -50,6 +52,25 @@ std::vector< std::pair<double, double> > RealSetupManager::getHVPMTValue() {
     }
     return hv_values;
 }
+
+bool RealSetupManager::propagateDiscriSettings() {
+    // Take action together with checking if the action succeded 
+    // NB : Setup functions return several different int's so far
+    
+    bool succeeded_majority = (m_discri.setMajority(m_interface.getConditions().getChannelsMajority()) == 1);
+
+    bool succeeded_discriSettings = true;
+    for (int dc_id = 0; dc_id < m_interface.getConditions().getNDiscriChannels(); dc_id++) {
+        succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setChannel(dc_id, m_interface.getConditions().getDiscriChannelState(dc_id))) == 1));
+        succeeded_discriSettings = (succeeded_discriSettings && (m_discri.setTh(m_interface.getConditions().getDiscriChannelThreshold(dc_id), dc_id) == 1));
+        succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setWidth(m_interface.getConditions().getDiscriChannelWidth(dc_id), dc_id)) == 1));
+        succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setWidth(m_interface.getConditions().getDiscriChannelWidth(dc_id), dc_id)) == 1));
+
+    }
+    return succeeded_majority && succeeded_discriSettings;
+}
+
+
 
 //std::vector<double> RealSetupManager::getHVPMTState() {
 //    // FIXME Not available yet in Martin's library

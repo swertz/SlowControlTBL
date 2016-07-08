@@ -20,6 +20,8 @@ class FakeSetupManager: public SetupManager {
         virtual bool switchHVPMTOFF(std::size_t id) override;
         virtual std::vector< std::pair<double, double> > getHVPMTValue() override;
 
+        virtual bool propagateDiscriSettings() override;
+
     private:
 
         Interface& m_interface;
