@@ -86,6 +86,7 @@ DiscriSettingsWindow::DiscriSettingsWindow(Interface& m_interface):
         connect(m_btn_propagate, &QPushButton::clicked, this, &DiscriSettingsWindow::propagate);
         // FIXME log discri settings into the condition log
         connect(m_btn_propagate, &QPushButton::clicked, &m_interface, &Interface::updateConditionLog);
+        connect(m_btn_propagate, &QPushButton::clicked, [&](){ QCloseEvent *event = new QCloseEvent(); this->closeEvent(event); });
         discri_layout->addWidget(m_btn_propagate);
 
         setLayout(discri_layout);
@@ -115,24 +116,3 @@ void DiscriSettingsWindow::propagate() {
     // ask condition manager to propagate the settings to the setup
     m_interface.m_conditions->propagateDiscriSettings();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

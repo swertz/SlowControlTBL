@@ -31,11 +31,11 @@ class ConditionManager {
                     { 0, 0, 0, false, false, false }
                     }),
             m_discriChannels({
-                    {true, 5, 200},
-                    {true, 5, 200},
-                    {true, 5, 200},
-                    {false, 5, 200},
-                    {false, 5, 200}
+                    { true, 5, 200 },
+                    { true, 5, 200 },
+                    { true, 5, 200 },
+                    { false, 5, 200 },
+                    { false, 5, 200 }
                     }),
             m_channelsMajority(3)
         {
