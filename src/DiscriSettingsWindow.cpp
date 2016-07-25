@@ -36,6 +36,8 @@ DiscriSettingsWindow::DiscriSettingsWindow(Interface& m_interface):
         label_include->setAlignment(Qt::AlignCenter);
         discri_boxLayout->addWidget(label_include, vPos_settingLabels, hPos_include);
 
+        std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getDiscriLock());
+        
         // Display the channel settings themselves
         int vPos_channel = 0;
         for (int dc_id = 0; dc_id < m_interface.m_conditions->getNDiscriChannels(); dc_id++) {
@@ -43,7 +45,7 @@ DiscriSettingsWindow::DiscriSettingsWindow(Interface& m_interface):
 
             vPos_channel = dc_id+1;
 
-            discriChannel.label = new QLabel("Discri channel "+QString::number(dc_id)+ " : ");
+            discriChannel.label = new QLabel("Discri channel " + QString::number(dc_id) + " : ");
             discri_boxLayout->addWidget(discriChannel.label, vPos_channel, 0);
 
             discriChannel.included = new QCheckBox();
@@ -101,6 +103,9 @@ void DiscriSettingsWindow::closeEvent(QCloseEvent *event) {
 
 // Propagate the setting to the condition manager and to the setup
 void DiscriSettingsWindow::propagate() {
+        
+    std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getDiscriLock());
+    
     // Majority
     m_interface.m_conditions->setChannelsMajority(m_box_majority->value());
     

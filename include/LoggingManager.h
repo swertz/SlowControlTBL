@@ -101,7 +101,7 @@ class LoggingManager {
       
       using m_clock = std::chrono::system_clock;
 
-      LoggingManager(Interface& m_interface, uint32_t m_continuous_log_time = 1000);
+      LoggingManager(Interface& m_interface, uint32_t run_number, uint32_t m_continuous_log_time = 1000);
       ~LoggingManager() {};
 
       void run();
@@ -109,6 +109,11 @@ class LoggingManager {
       
       // Public: if interface changes something during a run, we have to update
       void updateConditionManagerLog(bool first_time = false, m_clock::time_point log_time = m_clock::now());
+
+      /* Static: to check if creating a LoggingManager with a certain run number would overwrite existing log files
+       * Return: true if log files already exist
+       */
+      static bool checkRunNumber(uint32_t number);
   
   private:
         
@@ -124,6 +129,7 @@ class LoggingManager {
       std::atomic<bool> is_running;
 
       uint32_t m_continuous_log_time;
+      uint32_t m_run_number;
       std::shared_ptr<CSV> m_continuous_log;
 
       Json::Value m_condition_json_root;

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <chrono>
 #include <atomic>
@@ -11,14 +12,25 @@
 #include "Interface.h"
 #include "Utils.h"
 
-LoggingManager::LoggingManager(Interface& m_interface, uint32_t m_continuous_log_time):
+LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint32_t m_continuous_log_time):
     m_interface(m_interface),
+    m_run_number(run_number),
     m_conditions(m_interface.getConditions()),
     is_running(true),
     m_continuous_log_time(m_continuous_log_time),
     m_condition_json_list(Json::arrayValue)
 {
-    std::cout << "Creating LoggingManager." << std::endl;
+    std::cout << "Creating LoggingManager for run number " << run_number << "." << std::endl;
+}
+
+bool LoggingManager::checkRunNumber(uint32_t number) {
+    if (std::ifstream("cont_log_run_" + std::to_string(number) + ".csv")) {
+        return true;
+    }
+    if (std::ifstream("cond_log_run_" + std::to_string(number) + ".json")) {
+        return true;
+    }
+    return false;
 }
 
 void LoggingManager::run(){
@@ -56,7 +68,7 @@ void LoggingManager::stop() {
 //--- Continuous logging
 
 void LoggingManager::initContinuousLog() {
-    m_continuous_log = std::make_shared<CSV>("cont_log.csv");
+    m_continuous_log = std::make_shared<CSV>("cont_log_run_" + std::to_string(m_run_number) + ".csv");
 
     m_continuous_log->addField("timestamp");
     
@@ -98,6 +110,7 @@ void LoggingManager::updateConditionManagerLog(bool first_time, m_clock::time_po
     std::cout << "Updating conditions log" << std::endl;
 
     m_condition_json_root["conditions_changed"] = !first_time;
+    m_condition_json_root["run_number"] = m_run_number; 
     
     Json::Value this_condition;
     Json::Value hv_values;
@@ -144,7 +157,7 @@ void LoggingManager::finalizeConditionManagerLog() {
     Json::StyledWriter m_writer;
 
     std::ofstream file_stream;
-    file_stream.open("cond_log.json"); // FIXME add run number
+    file_stream.open("cond_log_run_" + std::to_string(m_run_number) + ".json");
     if(!file_stream.is_open())
         throw std::ios_base::failure("Could not open file cond_log.json");
     file_stream << m_writer.write(m_condition_json_root);

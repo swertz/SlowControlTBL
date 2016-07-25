@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QTimer>
+#include <QSpinBox>
 
 #include <thread>
 #include <memory>
@@ -54,5 +55,7 @@ class Interface : public QWidget {
 
         bool running;
 
+        QSpinBox *m_runNumberSpin;
+        QLabel *m_runNumberLabel;
         QPushButton *m_discriTunerBtn;
 };
