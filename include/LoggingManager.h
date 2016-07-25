@@ -24,7 +24,7 @@ class CSV {
         
         CSV(std::string fileName): m_frozen(false) {
             m_file.open(fileName);
-            if(!m_file.is_open())
+            if (!m_file.is_open())
                 throw std::ios_base::failure("Could not open file " + fileName);
         }
         ~CSV() { m_file.close(); }

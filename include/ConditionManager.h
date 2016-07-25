@@ -119,9 +119,16 @@ class ConditionManager {
          * Check if transition from `state_from` to `state_to` is allowed
          */
         static bool checkTransition(ConditionManager::State state_from, ConditionManager::State state_to);
-        
+
+        /* 
+         * Get locks. The locks are NOT locked in getters/setters below, because we assume users
+         * will take care of that when they call them. 
+         * Trying to lock a mutex in a getter/setter while the same lock was locked before by the
+         * user would result in freezing the program.
+         */
         std::mutex& getHVLock() { return m_hv_mtx; }
         std::mutex& getTDCLock() { return m_tdc_mtx; }
+        std::mutex& getDiscriLock() { return m_discri_mtx; }
 
         /*
          * Define/retrieve/propagate the PMT HV conditions
@@ -138,6 +145,9 @@ class ConditionManager {
         //int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
         std::size_t getNHVPMT() const { return m_hvpmt.size(); }
 
+        /*
+         * Define/retrieve/propagate the Discriminator conditions
+         */
         void setDiscriChannelState(std::size_t id, bool state) { m_discriChannels.at(id).included = state; }
         bool getDiscriChannelState(std::size_t id) const { return m_discriChannels.at(id).included; }
         void setDiscriChannelThreshold(std::size_t id, int threshold) { m_discriChannels.at(id).threshold = threshold; }
@@ -165,6 +175,7 @@ class ConditionManager {
     private:
 
         std::mutex m_hv_mtx;
+        std::mutex m_discri_mtx;
         std::mutex m_tdc_mtx;
 
         Interface& m_interface;

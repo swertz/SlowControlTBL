@@ -84,13 +84,11 @@ DiscriSettingsWindow::DiscriSettingsWindow(Interface& m_interface):
         // Button to propagate the settings
         m_btn_propagate = new QPushButton("Propagate");
         connect(m_btn_propagate, &QPushButton::clicked, this, &DiscriSettingsWindow::propagate);
-        // FIXME log discri settings into the condition log
         connect(m_btn_propagate, &QPushButton::clicked, &m_interface, &Interface::updateConditionLog);
         connect(m_btn_propagate, &QPushButton::clicked, [&](){ QCloseEvent *event = new QCloseEvent(); this->closeEvent(event); });
         discri_layout->addWidget(m_btn_propagate);
 
         setLayout(discri_layout);
-        //this->adjustSize();
     }
 
 // Ensure that the proper actions are taken when clicking the exit button
@@ -105,6 +103,7 @@ void DiscriSettingsWindow::closeEvent(QCloseEvent *event) {
 void DiscriSettingsWindow::propagate() {
     // Majority
     m_interface.m_conditions->setChannelsMajority(m_box_majority->value());
+    
     for (int dc_id = 0; dc_id < m_interface.m_conditions->getNDiscriChannels(); dc_id++) {
         // Include channel or not
         m_interface.m_conditions->setDiscriChannelState(dc_id, m_discriChannels.at(dc_id).included->isChecked());
@@ -113,6 +112,7 @@ void DiscriSettingsWindow::propagate() {
         // Threshold
         m_interface.m_conditions->setDiscriChannelThreshold(dc_id, m_discriChannels.at(dc_id).threshold->value());
     }
+    
     // ask condition manager to propagate the settings to the setup
     m_interface.m_conditions->propagateDiscriSettings();
 }
