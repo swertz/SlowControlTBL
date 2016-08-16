@@ -37,6 +37,8 @@ HVGroup::HVGroup(Interface& m_interface):
         m_layout->addWidget(toplabel_set_state, 0, position_set_state);
 
         //m_layout->addWidget(toplabel_read_state, 0, 4);
+    
+        std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
 
         for (int hv_id = 0; hv_id < m_interface.m_conditions->getNHVPMT(); hv_id++) {
 
