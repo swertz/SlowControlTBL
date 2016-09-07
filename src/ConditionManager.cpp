@@ -71,6 +71,13 @@ bool ConditionManager::propagateDiscriSettings() {
     return m_setup_manager->propagateDiscriSettings();
 }
 
+void ConditionManager::startTrigger() {
+    m_setup_manager->setTrigger(m_triggerChannel, m_triggerRandomFrequency);
+}
+
+void ConditionManager::stopTrigger() {
+    m_setup_manager->setTrigger(7, 0); // Channel 7 means disabled...
+}
 
 void ConditionManager::startDaemons() {
     if( setState(State::running) ) {

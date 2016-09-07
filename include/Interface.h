@@ -36,8 +36,8 @@ class Interface : public QWidget {
         void notifyUpdate();
 
     private slots:
-        void startLoggingManager();
-        void stopLoggingManager();
+        void startRun();
+        void stopRun();
         void showDiscriSettingsWindow();
 
     private:
@@ -58,4 +58,7 @@ class Interface : public QWidget {
         QSpinBox *m_runNumberSpin;
         QLabel *m_runNumberLabel;
         QPushButton *m_discriTunerBtn;
+
+        QSpinBox *m_triggerChannel_box;
+        QSpinBox *m_triggerRandom_box;
 };

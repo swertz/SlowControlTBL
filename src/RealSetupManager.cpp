@@ -4,6 +4,7 @@
 #include "VmeUsbBridge.h"
 #include "HV.h"
 #include "Discri.h"
+#include "TTCvi.h"
 
 #include "RealSetupManager.h"
 #include "Interface.h"
@@ -13,7 +14,8 @@ RealSetupManager::RealSetupManager(Interface& m_interface):
     m_interface(m_interface),
     m_controller(UsbController(NORMAL)),
     m_hvpmt(hv(&m_controller, 0xF0000, 2)),
-    m_discri(discri(&m_controller))
+    m_discri(discri(&m_controller)),
+    m_TTC(ttcVi(&m_controller))
     { }
 
 RealSetupManager::~RealSetupManager() {
@@ -68,6 +70,23 @@ bool RealSetupManager::propagateDiscriSettings() {
 
     }
     return succeeded_majority && succeeded_discriSettings;
+}
+
+void RealSetupManager::setTrigger(int channel, int randomFrequency) {
+    m_TTC.resetCounter();
+    if (channel == 7){
+        std::cout << "Disabling trigger..." << std::endl;
+        m_TTC.changeChannel(channel);
+        return;
+    }
+    else {
+        std::cout << "Setting trigger to channel " << channel << "..." << std::endl;
+    }
+    if (channel == 5 || channel == -1){
+        std::cout << "Trigger in random mode with frequency mode " << randomFrequency << "..." << std::endl;
+        m_TTC.changeRandomFrequency(randomFrequency);
+    }
+    m_TTC.changeChannel(channel);
 }
 
 

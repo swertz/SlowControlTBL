@@ -40,6 +40,22 @@ Interface::Interface(QWidget *parent):
         runNumber_layout->addWidget(runLabel);
         runNumber_layout->addWidget(m_runNumberLabel);
         runNumber_layout->addWidget(m_runNumberSpin);
+
+        QHBoxLayout *triggerControl_layout = new QHBoxLayout();
+        QLabel *triggerLabel = new QLabel("Trigger control: ");
+        QLabel *triggerChannelLabel = new QLabel("Channel");
+        m_triggerChannel_box = new QSpinBox();
+        m_triggerChannel_box->setRange(-1, 7);
+        m_triggerChannel_box->setValue(m_conditions->getTriggerChannel());
+        QLabel *triggerRandomLabel = new QLabel("Random Freq mode");
+        m_triggerRandom_box = new QSpinBox();
+        m_triggerRandom_box->setRange(0, 7);
+        m_triggerRandom_box->setValue(m_conditions->getTriggerRandomFrequency());
+        triggerControl_layout->addWidget(triggerLabel);
+        triggerControl_layout->addWidget(triggerChannelLabel);
+        triggerControl_layout->addWidget(m_triggerChannel_box);
+        triggerControl_layout->addWidget(triggerRandomLabel);
+        triggerControl_layout->addWidget(m_triggerRandom_box);
         
         QPushButton *startBtn = new QPushButton("Start");
         QPushButton *stopBtn = new QPushButton("Stop");
@@ -47,6 +63,7 @@ Interface::Interface(QWidget *parent):
         run_layout->addWidget(startBtn);
         run_layout->addWidget(stopBtn);
         run_layout->addLayout(runNumber_layout);
+        run_layout->addLayout(triggerControl_layout);
         run_box->setLayout(run_layout);
         
         /* ----- HV control box ----- */
@@ -65,10 +82,10 @@ Interface::Interface(QWidget *parent):
         setLayout(master_grid);
 
         /* ----- Connect signals ----- */
-        connect(startBtn, &QPushButton::clicked, this, &Interface::startLoggingManager);
-        connect(stopBtn, &QPushButton::clicked, this, &Interface::stopLoggingManager);
+        connect(startBtn, &QPushButton::clicked, this, &Interface::startRun);
+        connect(stopBtn, &QPushButton::clicked, this, &Interface::stopRun);
         connect(m_discriTunerBtn, &QPushButton::clicked, this, &Interface::showDiscriSettingsWindow);
-        connect(quit, &QPushButton::clicked, this, &Interface::stopLoggingManager);
+        connect(quit, &QPushButton::clicked, this, &Interface::stopRun);
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
         resize(1000, 300);
@@ -91,7 +108,16 @@ void Interface::updateConditionLog() {
         m_logging_manager->updateConditionManagerLog();
 }
 
-void Interface::startLoggingManager() {
+void Interface::startRun() {
+
+    // Propagate trigger info to condition manager and setup
+    // Freeze trigger configuration
+    m_triggerChannel_box->setDisabled(1);
+    m_conditions->setTriggerChannel(m_triggerChannel_box->value());
+    m_triggerRandom_box->setDisabled(1);
+    m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
+    m_conditions->startTrigger();
+
     if(m_logging_manager.get())
         return;
 
@@ -116,7 +142,13 @@ void Interface::startLoggingManager() {
     running = true;
 }
     
-void Interface::stopLoggingManager() {
+void Interface::stopRun() {
+
+    // Re enable the trigger settings
+    m_conditions->stopTrigger();
+    m_triggerChannel_box->setDisabled(0);
+    m_triggerRandom_box->setDisabled(0);
+
     if(!m_logging_manager.get())
         return;
 

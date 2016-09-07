@@ -28,6 +28,10 @@ std::vector< std::pair<double, double> > FakeSetupManager::getHVPMTValue() {
     return hv_values;
 }
 
+void FakeSetupManager::setTrigger(int channel, int frequency) {
+    return;
+}
+
 bool FakeSetupManager::propagateDiscriSettings() {
     return true;
 }
