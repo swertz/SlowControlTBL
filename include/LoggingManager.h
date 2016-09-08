@@ -11,6 +11,7 @@
 #include <json/value.h>
 
 #include "ConditionManager.h"
+#include "PythonDB.h"
 
 // Forward declaration
 class Interface;
@@ -131,6 +132,10 @@ class LoggingManager {
       uint32_t m_continuous_log_time;
       uint32_t m_run_number;
       std::shared_ptr<CSV> m_continuous_log;
+
+      std::shared_ptr<OpenTSDBInterface> m_DB;
+      std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_setVal;
+      std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_readVal;
 
       Json::Value m_condition_json_root;
       Json::Value m_condition_json_list;
