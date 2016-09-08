@@ -37,7 +37,9 @@ class ConditionManager {
                     { false, 5, 200 },
                     { false, 5, 200 }
                     }),
-            m_channelsMajority(3)
+            m_channelsMajority(3),
+            m_triggerChannel(1),
+            m_triggerRandomFrequency(0)
         {
             std::cout << "Checking if the PC is connected to board..." << std::endl;
             UsbController *dummy_controller = new UsbController(DEBUG);
@@ -145,6 +147,14 @@ class ConditionManager {
         //int getHVPMTReadState(std::size_t id) const { return m_hvpmt.at(id).readState; }
         std::size_t getNHVPMT() const { return m_hvpmt.size(); }
 
+        // Trigger control: channel 1 --> physics,  channel 5 --> random
+        void setTriggerChannel(int channel) { m_triggerChannel = channel; }
+        int getTriggerChannel() { return m_triggerChannel; }
+        void setTriggerRandomFrequency(int frequency) { m_triggerRandomFrequency = frequency; }
+        int getTriggerRandomFrequency() { return m_triggerRandomFrequency; }
+        void startTrigger();
+        void stopTrigger();
+
         /*
          * Define/retrieve/propagate the Discriminator conditions
          */
@@ -187,6 +197,9 @@ class ConditionManager {
         std::vector<HVPMT> m_hvpmt;
         std::vector<DiscriChannel> m_discriChannels;
         int m_channelsMajority;
+
+        int m_triggerChannel;
+        int m_triggerRandomFrequency;
         
         std::shared_ptr<SetupManager> m_setup_manager;
 };

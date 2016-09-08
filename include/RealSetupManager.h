@@ -8,6 +8,7 @@
 #include "VmeUsbBridge.h"
 #include "HV.h"
 #include "Discri.h"
+#include "TTCvi.h"
 
 class Interface;
 
@@ -27,6 +28,9 @@ class RealSetupManager: public SetupManager {
         virtual std::vector< std::pair<double, double> > getHVPMTValue() override;
         //virtual int getHVPMTState(size_t id) override;
 
+        // Trigger control : channel 1 --> physics trigger, channel 5 --> random triggers
+        virtual void setTrigger(int channel, int randomFrequency) override;
+
         // Discriminator/coincidence manager
         virtual bool propagateDiscriSettings() override;
 
@@ -35,6 +39,7 @@ class RealSetupManager: public SetupManager {
         UsbController m_controller;
         hv m_hvpmt;
         discri m_discri;
+        ttcVi m_TTC;
         
         Interface& m_interface;
 };
