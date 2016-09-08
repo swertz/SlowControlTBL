@@ -42,16 +42,6 @@ public:
    * 
    * It has only been tested in trigger mode.
    */
-  void analyseEvent(event myEvent, string filename);
-  /**
-   * \brief writes the fase of the event "myEvent".
-   * 
-   * -Computes the time difference, in units of TDC precision (cf 'readResolution()'), between the first hit in the channel 
-   * 
-   * TriggerChannelNumber inside the search window and the preceding clock cycle in the channel ClockChannelNumber.
-   *
-   * -Writes the phase in 'filename'
-   */
   void coutEvent(event myEvent);
   /**
    * \brief desribes explicitely the content of myEvent in the standard output stream
@@ -153,7 +143,26 @@ public:
    * 
    * This information is neglected by 'getEvent()'.
    */
- 
+
+  void writeDeadTime(int deadTime);
+  /**
+   * \brief Sets the dead time in all channels
+   */
+
+  void readDeadTime();
+  /**
+   * \brief Reads the dead time in all channels
+   */
+
+  void setDetectConf(int mode);
+
+  void getDetectConf();
+    
+  void SetAlmostFull(int nMax);
+  /**
+   * \brief Set almost full level
+   */
+
   void writeOpcode(unsigned int &data);
   /**
    * \brief writes a command line of 16 bit in the Micro Controller register.
@@ -165,6 +174,51 @@ public:
    * \brief reads a 16 bit word in the Micro Controller register.
    * 
    * This command includes a wait time for micro controllers 'read ready' bit.
+   */
+
+  unsigned int GetStatusWord ();
+  /**
+   * \brief Returns the status word of the TDC card.
+   */
+  bool DataReady(unsigned int status = 4);
+  /**
+   * \brief Returns if data ready in FIFO.
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  bool IsAlmostFull(unsigned int status = 4);
+  /**
+   * \brief Returns if buffer is almost full.
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  bool IsFull(unsigned int status = 4);
+  /**
+   * \brief Returns if buffer is full.
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  bool LostTrig(unsigned int status = 4);
+  /** \brief Returns if a trigger was lost
+   *  \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  int  InError(unsigned int status = 4);
+  /**
+   * \brief Returns TDC status. One bit per TDC (4bits in total).
+   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   */
+  int GetNumberOfEvents();
+  /**
+   * \brief Returns number of events currently in FIFO
+   */
+  int GetNumberOfWords();
+  /**
+   * \brief Returns number of words of event in FIFO
+   */
+  vector <event> ReadFIFO();
+  /**
+   * \brief Returns all events in the FIFO
+   */
+  event GetEvent();
+  /**
+   * \brief Reads an event from the FIFO
    */
 
 private:
@@ -187,9 +241,8 @@ private:
   //PRIVATE FUNCTIONS
   int waitWrite(void);
   int waitRead(void);
-  int waitDataReady(void);
-
-
+//  int waitDataReady(void);
+  
 };
 
 
