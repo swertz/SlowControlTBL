@@ -11,6 +11,7 @@
 #include "ConditionManager.h"
 #include "Interface.h"
 #include "Utils.h"
+#include "PythonDB.h"
 
 LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint32_t m_continuous_log_time):
     m_interface(m_interface),
@@ -21,6 +22,38 @@ LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint
     m_condition_json_list(Json::arrayValue)
 {
     std::cout << "Creating LoggingManager for run number " << run_number << "." << std::endl;
+
+    // Try to connect to OpenTSDB client
+    try {
+        m_DB = std::make_shared<OpenTSDBInterface>();
+    } catch (OpenTSDBInterface::initialise_error& e) {
+        std::cerr << "Warning when starting LoggingManager: " << e.what() << std::endl;
+        m_DB.reset();
+    }
+    // Create all the time series for values to be monitored in-browser
+    if (m_DB.get()) {
+        for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+            m_timeSeries_HVPMT_readVal.push_back(
+                    m_DB->addTimeSeries(
+                        "HVPMT.read", 
+                        { 
+                            { "hv", std::to_string(id) },
+                            { "run_number", std::to_string(m_run_number) }
+                        }
+                    )
+                );
+            m_timeSeries_HVPMT_setVal.push_back(
+                    m_DB->addTimeSeries(
+                        "HVPMT.set", 
+                        { 
+                            { "hv", std::to_string(id) },
+                            { "run_number", std::to_string(m_run_number) }
+                        }
+                    )
+                );
+        }
+    }
+
 }
 
 bool LoggingManager::checkRunNumber(uint32_t number) {
@@ -83,14 +116,21 @@ void LoggingManager::initContinuousLog() {
 void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
     // Lock the conditions manager to read all the values at once
     std::lock_guard<std::mutex> hv_lock(m_conditions.getHVLock());
+
+    uint64_t time_now = timeNowStamp<m_clock>(log_time);
     
-    m_continuous_log->setField("timestamp", log_time.time_since_epoch().count());
+    m_continuous_log->setField("timestamp", time_now);
     
     for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
         m_continuous_log->setField("hv_" + std::to_string(id) + "_setValue", m_conditions.getHVPMTSetValue(id));
         m_continuous_log->setField("hv_" + std::to_string(id) + "_readValue", m_conditions.getHVPMTReadValue(id));
+        
+        if (m_DB.get()) {
+            m_DB->putValue(m_timeSeries_HVPMT_setVal.at(id), m_conditions.getHVPMTSetValue(id), time_now);
+            m_DB->putValue(m_timeSeries_HVPMT_readVal.at(id), m_conditions.getHVPMTReadValue(id), time_now);
+        }
     }
-
+    
     m_continuous_log->putLine();
 }
 

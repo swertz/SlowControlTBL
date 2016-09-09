@@ -23,11 +23,15 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Threads REQUIRED)
 find_package(jsoncpp REQUIRED)
 
+set(Python_ADDITIONAL_VERSIONS 2.6 2.7)
+find_package(PythonLibs REQUIRED)
+
 include_directories(${JSONCPP_INCLUDE_DIRS}/${JSONCPP_INCLUDE_PREFIX})
 include_directories("include")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/include)
+include_directories(${PYTHON_INCLUDE_DIRS})
 
-set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/lib/libCAEN.so)
+set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${PYTHON_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/lib/libCAEN.so)
 
 qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h
     include/DiscriSettingsWindow.h)
@@ -41,6 +45,7 @@ set(SOURCES
     "src/RealSetupManager.cpp"
     "src/FakeSetupManager.cpp"
     "src/DiscriSettingsWindow.cpp"
+    "src/PythonDB.cpp"
     ${Interfaces_SRC}
     )
 

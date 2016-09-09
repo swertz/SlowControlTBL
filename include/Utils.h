@@ -24,6 +24,12 @@ inline std::string timeToString(typename T::time_point m_time) {
 }
 
 template<typename T>
-Json::UInt64 timeToJson(typename T::time_point m_time) {
-    return static_cast<Json::UInt64>(m_time.time_since_epoch().count());
+uint64_t timeNowStamp(typename T::time_point m_time) {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(m_time.time_since_epoch()).count();
 }
+
+template<typename T>
+Json::UInt64 timeToJson(typename T::time_point m_time) {
+    return static_cast<Json::UInt64>(timeNowStamp<T>(m_time));
+}
+
