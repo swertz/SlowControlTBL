@@ -136,6 +136,8 @@ class LoggingManager {
       std::shared_ptr<OpenTSDBInterface> m_DB;
       std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_setVal;
       std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_readVal;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_eventBufferCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_eventCounter;
 
       Json::Value m_condition_json_root;
       Json::Value m_condition_json_list;

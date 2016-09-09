@@ -217,7 +217,7 @@ unsigned int tdc::GetStatusWord(){
 // Functions to check specific bits in status word.
 // Status word = 4 -> Full and no data ready -> get new status word
 
-bool tdc::IsFull(unsigned int status){
+/*bool tdc::IsFull(unsigned int status){
     if (status == 4) status = GetStatusWord();
     return((status>>2)%2);
 }
@@ -227,19 +227,35 @@ bool tdc::LostTrig(unsigned int status){
     return((status>>15)%2);
 }
 
+bool tdc::DataReady(unsigned int status){
+    if (status == 4) status = GetStatusWord();
+    return(status%2);
+}
+
 bool tdc::IsAlmostFull(unsigned int status){
     if (status == 4) status = GetStatusWord();
     return((status>>1)%2);
+}*/
+
+bool tdc::DataReady(unsigned int status){
+    return status % 2;
+}
+
+bool tdc::IsFull(unsigned int status){
+    return (status>>2) % 2;
+}
+
+bool tdc::LostTrig(unsigned int status){
+    return (status>>15) % 2;
+}
+
+bool tdc::IsAlmostFull(unsigned int status){
+    return (status>>1) % 2;
 }
 
 int tdc::InError(unsigned int status){
     if (status == 4) status = GetStatusWord();
     return((status>>6)%16);
-}
-
-bool tdc::DataReady(unsigned int status){
-    if (status == 4) status = GetStatusWord();
-    return(status%2);
 }
 
 void tdc::Reset(){

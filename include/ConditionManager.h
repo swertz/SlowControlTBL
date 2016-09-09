@@ -14,6 +14,7 @@
 #include "RealSetupManager.h"
 #include "FakeSetupManager.h"
 #include "VmeUsbBridge.h"
+#include "Event.h"
 
 class Interface;
 
@@ -25,10 +26,10 @@ class ConditionManager {
             m_interface(m_interface),
             m_state(State::idle),
             m_hvpmt({
-                    { 1025, 0, 0, false, true, false },
-                    { 925, 0, 0, false, true, false },
-                    { 1225, 0, 0, false, true, false },
-                    { 0, 0, 0, false, false, false }
+                    { 1025, 0, 0, true },
+                    { 925, 0, 0, true },
+                    { 1225, 0, 0, true },
+                    { 0, 0, 0, false }
                     }),
             m_discriChannels({
                     { true, 5, 200 },
@@ -39,7 +40,10 @@ class ConditionManager {
                     }),
             m_channelsMajority(3),
             m_triggerChannel(1),
-            m_triggerRandomFrequency(0)
+            m_triggerRandomFrequency(0),
+            m_TDC_backPressuring(false),
+            m_TDC_fatal(false),
+            m_TDC_evtCounter(0)
         {
             std::cout << "Checking if the PC is connected to board..." << std::endl;
             UsbController *dummy_controller = new UsbController(DEBUG);
@@ -54,13 +58,13 @@ class ConditionManager {
                 m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
             }
 
-            // for testing purposes
-            setState(State::configured);
-
-            startDaemons();
+            startHVDaemon();
         }
 
-        ~ConditionManager() { stopDaemons(); }
+        ~ConditionManager() {
+            stopTDCReading();
+            stopHVDaemon();
+        }
 
         /*
          * Define states of the state machine.
@@ -84,10 +88,8 @@ class ConditionManager {
             int setValue;
             int readValue;
             int readCurrent;
-            bool valueChanged;
             bool setState;
             //int readState;
-            bool stateChanged;
         };
 
         // Discri settings
@@ -130,6 +132,7 @@ class ConditionManager {
          */
         std::mutex& getHVLock() { return m_hv_mtx; }
         std::mutex& getTDCLock() { return m_tdc_mtx; }
+        std::mutex& getTTCLock() { return m_ttc_mtx; }
         std::mutex& getDiscriLock() { return m_discri_mtx; }
 
         /*
@@ -169,6 +172,15 @@ class ConditionManager {
         void setChannelsMajority(int majority) { m_channelsMajority = majority; }
         bool propagateDiscriSettings();
 
+
+        /*
+         * Start/stop the TDC reading daemon
+         */
+        void startTDCReading();
+        void stopTDCReading();
+        std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
+        uint64_t getTDCEventCount() { return m_TDC_evtCounter; }
+
         /*
          * Daemons: will run as threads in the background,
          * handle the HV & TDC cards
@@ -176,8 +188,8 @@ class ConditionManager {
         void daemonHV();
         void daemonTDC();
 
-        void startDaemons();
-        void stopDaemons();
+        void startHVDaemon();
+        void stopHVDaemon();
        
         // Transitions are defined in .cc file
         static const std::vector< std::pair<State, State> > m_transitions;
@@ -186,6 +198,7 @@ class ConditionManager {
 
         std::mutex m_hv_mtx;
         std::mutex m_discri_mtx;
+        std::mutex m_ttc_mtx;
         std::mutex m_tdc_mtx;
 
         Interface& m_interface;
@@ -200,6 +213,11 @@ class ConditionManager {
 
         int m_triggerChannel;
         int m_triggerRandomFrequency;
+
+        std::vector<event> m_TDC_evtBuffer;
+        bool m_TDC_backPressuring;
+        bool m_TDC_fatal;
+        uint64_t m_TDC_evtCounter;
         
         std::shared_ptr<SetupManager> m_setup_manager;
 };

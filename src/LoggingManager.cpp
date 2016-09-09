@@ -52,6 +52,9 @@ LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint
                     )
                 );
         }
+
+        m_timeSeries_TDC_eventBufferCounter = m_DB->addTimeSeries("TDC.nEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
+        m_timeSeries_TDC_eventCounter = m_DB->addTimeSeries("TDC.nEvt", { { "run_number", std::to_string(m_run_number) } });
     }
 
 }
@@ -114,14 +117,13 @@ void LoggingManager::initContinuousLog() {
 }
     
 void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
-    // Lock the conditions manager to read all the values at once
-    std::lock_guard<std::mutex> hv_lock(m_conditions.getHVLock());
-
     uint64_t time_now = timeNowStamp<m_clock>(log_time);
     
     m_continuous_log->setField("timestamp", time_now);
     
     for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+        std::lock_guard<std::mutex> hv_lock(m_conditions.getHVLock());
+        
         m_continuous_log->setField("hv_" + std::to_string(id) + "_setValue", m_conditions.getHVPMTSetValue(id));
         m_continuous_log->setField("hv_" + std::to_string(id) + "_readValue", m_conditions.getHVPMTReadValue(id));
         
@@ -129,6 +131,18 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
             m_DB->putValue(m_timeSeries_HVPMT_setVal.at(id), m_conditions.getHVPMTSetValue(id), time_now);
             m_DB->putValue(m_timeSeries_HVPMT_readVal.at(id), m_conditions.getHVPMTReadValue(id), time_now);
         }
+    }
+
+    {
+        std::lock_guard<std::mutex> hv_lock(m_conditions.getTDCLock());
+            
+        if (m_DB.get()) {
+            m_DB->putValue(m_timeSeries_TDC_eventBufferCounter, m_conditions.getTDCEventBuffer().size(), time_now);
+            m_DB->putValue(m_timeSeries_TDC_eventCounter, m_conditions.getTDCEventCount(), time_now);
+        }
+        // FIXME
+        if (m_conditions.getTDCEventBuffer().size() >= 50)
+            m_conditions.getTDCEventBuffer().clear();
     }
     
     m_continuous_log->putLine();

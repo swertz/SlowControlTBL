@@ -109,17 +109,10 @@ void Interface::updateConditionLog() {
 }
 
 void Interface::startRun() {
-
-    // Propagate trigger info to condition manager and setup
-    // Freeze trigger configuration
-    m_triggerChannel_box->setDisabled(1);
-    m_conditions->setTriggerChannel(m_triggerChannel_box->value());
-    m_triggerRandom_box->setDisabled(1);
-    m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
-    m_conditions->startTrigger();
-
-    if(m_logging_manager.get())
+    if (m_logging_manager.get()) {
+        // We are running! Nothing to do...
         return;
+    }
 
     uint32_t run_number = m_runNumberSpin->value();
 
@@ -134,7 +127,22 @@ void Interface::startRun() {
     m_logging_manager = std::make_shared<LoggingManager>(*this, run_number);
     thread_handler = std::thread(&LoggingManager::run, std::ref(*m_logging_manager));
 
+    // Start listening for TDC events
+    m_conditions->startTDCReading();
+
+    // Freeze trigger configuration
+    m_triggerChannel_box->setDisabled(1);
+    m_triggerRandom_box->setDisabled(1);
+    {
+        // Propagate trigger info to condition manager and setup
+        std::lock_guard<std::mutex> m_lock(m_conditions->getTTCLock());
+        m_conditions->setTriggerChannel(m_triggerChannel_box->value());
+        m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
+        m_conditions->startTrigger();
+    }
+    
     m_hv_group->setRunning();
+    
     m_runNumberSpin->hide();
     m_runNumberLabel->setText(QString::number(run_number));
     m_runNumberLabel->show();
@@ -143,27 +151,36 @@ void Interface::startRun() {
 }
     
 void Interface::stopRun() {
-
-    // Re enable the trigger settings
-    m_conditions->stopTrigger();
-    m_triggerChannel_box->setDisabled(0);
-    m_triggerRandom_box->setDisabled(0);
-
-    if(!m_logging_manager.get())
+    if (!m_logging_manager.get()) {
+        // We're not running... Nothing to stop!
         return;
+    }
+
+    // Stop listening for TDC events
+    m_conditions->stopTDCReading();
 
     m_logging_manager->stop();
     thread_handler.join();
     m_logging_manager.reset();
-
-    notifyUpdate();
+    
+    // Stop trigger
+    {
+        std::lock_guard<std::mutex> m_lock(m_conditions->getTTCLock());
+        m_conditions->stopTrigger();
+    }
+    // Re enable the trigger settings
+    m_triggerChannel_box->setDisabled(0);
+    m_triggerRandom_box->setDisabled(0);
 
     m_hv_group->setNotRunning();
+    
     m_runNumberLabel->hide();
     m_runNumberSpin->setValue(m_runNumberSpin->value() + 1);
     m_runNumberSpin->show();
 
     running = false;
+    
+    notifyUpdate();
 }
 
 // When clicking the "DiscriSetting button", open a pop up window

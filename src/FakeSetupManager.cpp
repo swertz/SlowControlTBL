@@ -35,3 +35,21 @@ void FakeSetupManager::setTrigger(int channel, int frequency) {
 bool FakeSetupManager::propagateDiscriSettings() {
     return true;
 }
+
+void FakeSetupManager::setTDCWindowOffset(int offset) {
+}
+
+void FakeSetupManager::setTDCWindowWidth(int width) {
+}
+
+unsigned int FakeSetupManager::getTDCStatus() {
+    return 1;
+}
+
+int FakeSetupManager::getTDCNEvents() {
+    return 1;
+}
+
+event FakeSetupManager::getTDCEvent() {
+    return event();
+}

@@ -5,7 +5,7 @@
 #include "Event.h"
 #include <vector>
 #include <sstream>
-using namespace std;
+
 /**
  * \brief
  *  This class has a few functions encoding the basic functionalities of the TDC.
@@ -180,25 +180,30 @@ public:
   /**
    * \brief Returns the status word of the TDC card.
    */
-  bool DataReady(unsigned int status = 4);
+  
+  static bool DataReady(unsigned int status);
   /**
    * \brief Returns if data ready in FIFO.
    * \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  bool IsAlmostFull(unsigned int status = 4);
+  
+  static bool IsAlmostFull(unsigned int status);
   /**
    * \brief Returns if buffer is almost full.
    * \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  bool IsFull(unsigned int status = 4);
+  
+  static bool IsFull(unsigned int status);
   /**
    * \brief Returns if buffer is full.
    * \param status is the status word of the TDC. If none is given, will read from TDC.
    */
-  bool LostTrig(unsigned int status = 4);
+  
+  static bool LostTrig(unsigned int status);
   /** \brief Returns if a trigger was lost
    *  \param status is the status word of the TDC. If none is given, will read from TDC.
    */
+
   int  InError(unsigned int status = 4);
   /**
    * \brief Returns TDC status. One bit per TDC (4bits in total).

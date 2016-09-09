@@ -8,13 +8,14 @@
 #include "Interface.h"
 
 #include "VmeUsbBridge.h"
-#include "HV.h"
+#include "Event.h"
 
 // Static
 const std::vector< std::pair<ConditionManager::State, ConditionManager::State> > ConditionManager::m_transitions = {
     { ConditionManager::State::idle, ConditionManager::State::configured },
     { ConditionManager::State::configured, ConditionManager::State::running },
     { ConditionManager::State::running, ConditionManager::State::idle },
+    { ConditionManager::State::running, ConditionManager::State::configured },
     { ConditionManager::State::configured, ConditionManager::State::idle }
 };
 
@@ -79,22 +80,18 @@ void ConditionManager::stopTrigger() {
     m_setup_manager->setTrigger(7, 0); // Channel 7 means disabled...
 }
 
-void ConditionManager::startDaemons() {
-    if( setState(State::running) ) {
+void ConditionManager::startHVDaemon() {
+    if (m_state == State::idle && setState(State::configured))
         thread_handle_HV = std::thread(&ConditionManager::daemonHV, std::ref(*this));
-        thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
-    }
 }
 
-void ConditionManager::stopDaemons() {
-    if( setState(State::idle) ) {
+void ConditionManager::stopHVDaemon() {
+    if (setState(State::idle))
         thread_handle_HV.join();
-        thread_handle_TDC.join();
-    }
 }
 
 void ConditionManager::daemonHV() {
-    while(m_state == State::running) {
+    while(m_state == State::configured || m_state == State::running) {
         // wait some time
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       
@@ -109,8 +106,78 @@ void ConditionManager::daemonHV() {
     }
 }
 
+void ConditionManager::startTDCReading() {
+    if (setState(State::running))
+        thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
+}
+
+void ConditionManager::stopTDCReading() {
+    if (m_state == State::running && setState(State::configured) )
+        thread_handle_TDC.join();
+}
+
 void ConditionManager::daemonTDC() {
+    
     while(m_state == State::running) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        event m_evt; 
+
+        unsigned int tdc_status;
+        {
+            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+            tdc_status = m_setup_manager->getTDCStatus();
+        }
+        bool almost_full = tdc::IsAlmostFull(tdc_status);
+        bool lost_trigger = tdc::LostTrig(tdc_status);
+        bool data_ready = tdc::DataReady(tdc_status);
+
+        if (almost_full || lost_trigger) {
+            
+            // Something bad has happened or is about to happen -> backpressure the TTC
+            std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
+            stopTrigger();
+            m_TDC_backPressuring = true;
+        
+        } else {
+
+            if (m_TDC_backPressuring) {
+                std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
+                startTrigger();
+                m_TDC_backPressuring = false;
+            }
+            
+        }
+
+        if (data_ready) {
+            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+            
+            int n_evt = m_setup_manager->getTDCNEvents();
+            
+            // n_evt = 0 can happen if actual number of events between 1000 and 1024
+            // Also, read at most 50 events at once
+            if (n_evt > 5 || n_evt == 0)
+                n_evt = 5;
+
+            for (int i = 0; i < n_evt; i++) {
+                event this_evt = m_setup_manager->getTDCEvent();
+                this_evt.errorCode = 0;
+
+                // Data is corrupt -> stop saving it!
+                if (this_evt.errorCode) {
+                    m_TDC_fatal = true;
+                    break;
+                }
+                m_TDC_evtBuffer.push_back(this_evt);
+                m_TDC_evtCounter++;
+            }
+            
+            std::cout << "We have " << m_TDC_evtBuffer.size() << " events in buffer!" << std::endl;
+        }
+
+
+        if (m_TDC_fatal)
+            break;
     }
+
 }

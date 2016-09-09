@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "Event.h"
+
 class SetupManager {
     public:
         virtual ~SetupManager() {};
@@ -15,4 +17,10 @@ class SetupManager {
         virtual void setTrigger(int channel, int randomFrequency) = 0;
 
         virtual bool propagateDiscriSettings() = 0;
+        
+        virtual void setTDCWindowOffset(int offset) = 0;
+        virtual void setTDCWindowWidth(int width) = 0;
+        virtual unsigned int getTDCStatus() = 0;
+        virtual int getTDCNEvents() = 0;
+        virtual event getTDCEvent() = 0;
 };

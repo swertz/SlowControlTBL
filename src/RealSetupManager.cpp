@@ -5,6 +5,7 @@
 #include "HV.h"
 #include "Discri.h"
 #include "TTCvi.h"
+#include "Event.h"
 
 #include "RealSetupManager.h"
 #include "Interface.h"
@@ -15,7 +16,8 @@ RealSetupManager::RealSetupManager(Interface& m_interface):
     m_controller(UsbController(NORMAL)),
     m_hvpmt(hv(&m_controller, 0xF0000, 2)),
     m_discri(discri(&m_controller)),
-    m_TTC(ttcVi(&m_controller))
+    m_TTC(ttcVi(&m_controller)),
+    m_TDC(&m_controller, 0x00AA0000)
     { }
 
 RealSetupManager::~RealSetupManager() {
@@ -74,22 +76,39 @@ bool RealSetupManager::propagateDiscriSettings() {
 
 void RealSetupManager::setTrigger(int channel, int randomFrequency) {
     m_TTC.resetCounter();
-    if (channel == 7){
+    if (channel == 7) {
         std::cout << "Disabling trigger..." << std::endl;
         m_TTC.changeChannel(channel);
         return;
-    }
-    else {
+    } else {
         std::cout << "Setting trigger to channel " << channel << "..." << std::endl;
     }
-    if (channel == 5 || channel == -1){
+    if (channel == 5 || channel == -1) {
         std::cout << "Trigger in random mode with frequency mode " << randomFrequency << "..." << std::endl;
         m_TTC.changeRandomFrequency(randomFrequency);
     }
     m_TTC.changeChannel(channel);
 }
 
+void RealSetupManager::setTDCWindowOffset(int offset) {
+    m_TDC.setWindowOffset(offset);
+}
 
+void RealSetupManager::setTDCWindowWidth(int width) {
+    m_TDC.setWindowWidth(width);
+}
+
+unsigned int RealSetupManager::getTDCStatus() {
+    return m_TDC.GetStatusWord();
+}
+
+int RealSetupManager::getTDCNEvents() {
+    return m_TDC.GetNumberOfEvents();
+}
+
+event RealSetupManager::getTDCEvent() {
+    return m_TDC.GetEvent();
+}
 
 //std::vector<double> RealSetupManager::getHVPMTState() {
 //    // FIXME Not available yet in Martin's library
