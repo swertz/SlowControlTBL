@@ -10,51 +10,6 @@
 #include "VmeUsbBridge.h"
 #include "Event.h"
 
-// Static
-const std::vector< std::pair<ConditionManager::State, ConditionManager::State> > ConditionManager::m_transitions = {
-    { ConditionManager::State::idle, ConditionManager::State::configured },
-    { ConditionManager::State::configured, ConditionManager::State::running },
-    { ConditionManager::State::running, ConditionManager::State::idle },
-    { ConditionManager::State::running, ConditionManager::State::configured },
-    { ConditionManager::State::configured, ConditionManager::State::idle }
-};
-
-// Static
-std::string ConditionManager::stateToString(ConditionManager::State state) {
-    switch(state) {
-        case State::idle:
-            return "idle";
-        case State::configured:
-            return "configured";
-        case State::running:
-            return "running";
-        default:
-            return "Unknown state!";
-    }
-}
-
-// Static
-bool ConditionManager::checkTransition(ConditionManager::State state_from, ConditionManager::State state_to) { 
-    return std::find(m_transitions.begin(), m_transitions.end(), std::pair<State, State>( { state_from, state_to } ) ) != m_transitions.end();
-}
-
-bool ConditionManager::setState(ConditionManager::State state) {
-    if( state == m_state ) {
-        std::cout << "ConditionManager is already in state " << stateToString(m_state) << std::endl;
-        return false;
-    }
-   
-    if( !checkTransition(m_state, state) ) { 
-        throw std::runtime_error("Transition from " + stateToString(m_state) + " to " + stateToString(state) + " is not allowed.");
-    }
-    
-    std::cout << "Changing ConditionManager state from " << stateToString(m_state) << " to " << stateToString(state) << std::endl;
-
-    m_state = state;
-
-    return true;
-}
-
 bool ConditionManager::propagateHVPMTValue(std::size_t id) {
     bool result = m_setup_manager->setHVPMT(id);
 
@@ -81,17 +36,23 @@ void ConditionManager::stopTrigger() {
 }
 
 void ConditionManager::startHVDaemon() {
-    if (m_state == State::idle && setState(State::configured))
-        thread_handle_HV = std::thread(&ConditionManager::daemonHV, std::ref(*this));
+    if (thread_handle_HV.joinable()) {
+        throw daemon_state_error("HV daemon was already running");
+    }
+    m_HV_daemon_running = true;
+    thread_handle_HV = std::thread(&ConditionManager::daemonHV, std::ref(*this));
 }
 
 void ConditionManager::stopHVDaemon() {
-    if (setState(State::idle))
-        thread_handle_HV.join();
+    if (!thread_handle_HV.joinable()) {
+        throw daemon_state_error("HV daemon was not running");
+    }
+    m_HV_daemon_running = false;
+    thread_handle_HV.join();
 }
 
 void ConditionManager::daemonHV() {
-    while(m_state == State::configured || m_state == State::running) {
+    while (m_HV_daemon_running) {
         // wait some time
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       
@@ -107,22 +68,33 @@ void ConditionManager::daemonHV() {
 }
 
 void ConditionManager::startTDCReading() {
-    if (setState(State::running)) {
-        {
-            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
-            m_TDC_evtCounter = 0;
-            m_TDC_evtBuffer.clear();
-            m_TDC_backPressuring = false;
-            m_TDC_fatal = false;
-        }
-
-        thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
+    /*if (m_interface.getState() != Interface::State::configured) {
+        throw daemon_state_error("TDC daemon can only be started by a configured interface");
+    }*/
+    
+    if (thread_handle_TDC.joinable()) {
+        throw daemon_state_error("TDC daemon was already running");
     }
+    
+    std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+    m_TDC_evtCounter = 0;
+    m_TDC_evtBuffer.clear();
+    m_TDC_backPressuring = false;
+    m_TDC_fatal = false;
+
+    thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
 }
 
 void ConditionManager::stopTDCReading() {
-    if (m_state == State::running && setState(State::configured) )
-        thread_handle_TDC.join();
+    /*if (m_interface.getState() != Interface::State::running) {
+        throw daemon_state_error("TDC daemon can only be stopped by a running interface");
+    }*/
+    
+    if (!thread_handle_TDC.joinable()) {
+        throw daemon_state_error("TDC daemon was not running");
+    }
+
+    thread_handle_TDC.join();
     
     std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
     
@@ -134,7 +106,7 @@ void ConditionManager::stopTDCReading() {
 
 void ConditionManager::daemonTDC() {
     
-    while(m_state == State::running) {
+    while(m_interface.getState() == Interface::State::running) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         event m_evt; 

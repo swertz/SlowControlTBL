@@ -18,11 +18,56 @@
 #include "HVGroup.h"
 #include "DiscriSettingsWindow.h"
 
+// Static
+const std::vector< std::pair<Interface::State, Interface::State> > Interface::m_transitions = {
+    { Interface::State::idle, Interface::State::configured },
+    { Interface::State::configured, Interface::State::running },
+    { Interface::State::running, Interface::State::idle },
+    { Interface::State::configured, Interface::State::idle }
+};
+
+// Static
+std::string Interface::stateToString(Interface::State state) {
+    switch(state) {
+        case State::idle:
+            return "idle";
+        case State::configured:
+            return "configured";
+        case State::running:
+            return "running";
+        default:
+            return "Unknown state!";
+    }
+}
+
+// Static
+bool Interface::checkTransition(Interface::State state_from, Interface::State state_to) { 
+    return std::find(m_transitions.begin(), m_transitions.end(), std::pair<State, State>( { state_from, state_to } ) ) != m_transitions.end();
+}
+
+bool Interface::setState(Interface::State state) {
+    if( state == m_state ) {
+        std::cout << "Interface is already in state " << stateToString(m_state) << std::endl;
+        return false;
+    }
+   
+    if( !checkTransition(m_state, state) ) { 
+        throw std::runtime_error("Transition from " + stateToString(m_state) + " to " + stateToString(state) + " is not allowed.");
+    }
+    
+    std::cout << "Changing Interface state from " << stateToString(m_state) << " to " << stateToString(state) << std::endl;
+
+    m_state = state;
+
+    return true;
+}
+
 Interface::Interface(QWidget *parent): 
     QWidget(parent),
     m_conditions(new ConditionManager(*this)),
     m_discriTunerBtn(new QPushButton("Discriminator Settings")),
-    running(false) {
+    m_state(State::idle)
+    {
 
         std::cout << "Creating Interface. Qt version: " << qVersion() << "." << std::endl;
 
@@ -57,11 +102,14 @@ Interface::Interface(QWidget *parent):
         triggerControl_layout->addWidget(triggerRandomLabel);
         triggerControl_layout->addWidget(m_triggerRandom_box);
         
-        QPushButton *startBtn = new QPushButton("Start");
-        QPushButton *stopBtn = new QPushButton("Stop");
+        m_configureBtn = new QPushButton("Configure");
+        m_startBtn = new QPushButton("Start");
+        m_startBtn->setDisabled(true);
+        m_stopBtn = new QPushButton("Stop");
         
-        run_layout->addWidget(startBtn);
-        run_layout->addWidget(stopBtn);
+        run_layout->addWidget(m_configureBtn);
+        run_layout->addWidget(m_startBtn);
+        run_layout->addWidget(m_stopBtn);
         run_layout->addLayout(runNumber_layout);
         run_layout->addLayout(triggerControl_layout);
         run_box->setLayout(run_layout);
@@ -82,8 +130,9 @@ Interface::Interface(QWidget *parent):
         setLayout(master_grid);
 
         /* ----- Connect signals ----- */
-        connect(startBtn, &QPushButton::clicked, this, &Interface::startRun);
-        connect(stopBtn, &QPushButton::clicked, this, &Interface::stopRun);
+        connect(m_configureBtn, &QPushButton::clicked, this, &Interface::configureRun);
+        connect(m_startBtn, &QPushButton::clicked, this, &Interface::startRun);
+        connect(m_stopBtn, &QPushButton::clicked, this, &Interface::stopRun);
         connect(m_discriTunerBtn, &QPushButton::clicked, this, &Interface::showDiscriSettingsWindow);
         connect(quit, &QPushButton::clicked, this, &Interface::stopRun);
         connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
@@ -104,11 +153,16 @@ void Interface::notifyUpdate() {
 }
 
 void Interface::updateConditionLog() {
+    // FIXME
     if (running)
         m_logging_manager->updateConditionManagerLog();
 }
 
+void Interface::configureRun() {
+}
+
 void Interface::startRun() {
+    // FIXME
     if (m_logging_manager.get()) {
         // We are running! Nothing to do...
         return;
@@ -147,10 +201,12 @@ void Interface::startRun() {
     m_runNumberLabel->setText(QString::number(run_number));
     m_runNumberLabel->show();
 
+    // FIXME
     running = true;
 }
     
 void Interface::stopRun() {
+    // FIXME
     if (!m_logging_manager.get()) {
         // We're not running... Nothing to stop!
         return;
@@ -178,6 +234,7 @@ void Interface::stopRun() {
     m_runNumberSpin->setValue(m_runNumberSpin->value() + 1);
     m_runNumberSpin->show();
 
+    // FIXME
     running = false;
     
     notifyUpdate();

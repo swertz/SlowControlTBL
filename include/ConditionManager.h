@@ -1,8 +1,8 @@
 #pragma once
 
 #include <mutex>
-#include <atomic>
 #include <thread>
+#include <atomic>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -24,7 +24,7 @@ class ConditionManager {
 
         ConditionManager(Interface& m_interface):
             m_interface(m_interface),
-            m_state(State::idle),
+            m_HV_daemon_running(false),
             m_hvpmt({
                     { 1025, 0, 0, true },
                     { 925, 0, 0, true },
@@ -68,22 +68,17 @@ class ConditionManager {
         }
 
         ~ConditionManager() {
-            stopTDCReading();
-            stopHVDaemon();
+            try { 
+                stopTDCReading();
+            } catch(daemon_state_error) {};
+            
+            try { 
+                stopHVDaemon();
+            } catch(daemon_state_error) {};
         }
 
-        /*
-         * Define states of the state machine.
-         * Possible transitions (defined in constructor):
-         *  idle -> configured
-         *  configured -> running
-         *  running -> idle
-         *  configured -> idle
-         */
-        enum class State {
-            idle,
-            configured,
-            running
+        class daemon_state_error: public std::runtime_error {
+            using std::runtime_error::runtime_error;
         };
 
         /*
@@ -104,31 +99,6 @@ class ConditionManager {
             int threshold;
             int width;
         };
-
-
-        /*
-         * Get current ConditionManager state
-         */
-        ConditionManager::State getState() const { return m_state; }
-        
-        /*
-         * Change ConditionManager state to `state`.
-         * Throws exception if transition from current state is not allowed.
-         * Returns:
-         *  - `true` if state was changed successfully
-         *  - `false` if ConditionManager was already in the requested state
-         */
-        bool setState(ConditionManager::State state);
-        
-        /*
-         * Convert the state to a string
-         */
-        static std::string stateToString(ConditionManager::State state);
-
-        /*
-         * Check if transition from `state_from` to `state_to` is allowed
-         */
-        static bool checkTransition(ConditionManager::State state_from, ConditionManager::State state_to);
 
         /* 
          * Get locks. The locks are NOT locked in getters/setters below, because we assume users
@@ -197,9 +167,6 @@ class ConditionManager {
         void startHVDaemon();
         void stopHVDaemon();
        
-        // Transitions are defined in .cc file
-        static const std::vector< std::pair<State, State> > m_transitions;
-
     private:
 
         std::mutex m_hv_mtx;
@@ -208,9 +175,9 @@ class ConditionManager {
         std::mutex m_tdc_mtx;
 
         Interface& m_interface;
-        std::atomic<State> m_state;
 
         std::thread thread_handle_HV;
+        std::atomic<bool> m_HV_daemon_running;
         std::thread thread_handle_TDC;
 
         std::vector<HVPMT> m_hvpmt;

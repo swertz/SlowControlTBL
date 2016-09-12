@@ -10,6 +10,7 @@
 
 #include <thread>
 #include <memory>
+#include <atomic>
 
 class ConditionManager;
 class LoggingManager;
@@ -29,13 +30,41 @@ class Interface : public QWidget {
 
         ConditionManager& getConditions();
 
-        bool isRunning() const { return running; }
+        /*
+         * Define states of the state machine.
+         * Possible transitions (defined in source file):
+         *  idle -> configured
+         *  configured -> running
+         *  running -> idle
+         *  configured -> idle
+         */
+        enum class State {
+            idle,
+            configured,
+            running
+        };
+        
+        /*
+         * Get current state
+         */
+        Interface::State getState() const { return m_state; }
+
+        /*
+         * Convert the state to a string
+         */
+        static std::string stateToString(Interface::State state);
+
+        /*
+         * Check if transition from `state_from` to `state_to` is allowed
+         */
+        static bool checkTransition(Interface::State state_from, Interface::State state_to);
 
     public slots:
         void updateConditionLog();
         void notifyUpdate();
 
     private slots:
+        void configureRun();
         void startRun();
         void stopRun();
         void showDiscriSettingsWindow();
@@ -52,9 +81,24 @@ class Interface : public QWidget {
         std::shared_ptr<LoggingManager> m_logging_manager;
         std::shared_ptr<ConditionManager> m_conditions;
         std::thread thread_handler;
+        
+        /*
+         * Change  state to `state`.
+         * Throws exception if transition from current state is not allowed.
+         * Returns:
+         *  - `true` if state was changed successfully
+         *  - `false` if interface  was already in the requested state
+         */
+        bool setState(Interface::State state);
 
-        bool running;
-
+        // Transitions are defined in .cc file
+        static const std::vector< std::pair<State, State> > m_transitions;
+        std::atomic<State> m_state;
+        
+        QPushButton *m_configureBtn;
+        QPushButton *m_startBtn;
+        QPushButton *m_stopBtn;
+        
         QSpinBox *m_runNumberSpin;
         QLabel *m_runNumberLabel;
         QPushButton *m_discriTunerBtn;
