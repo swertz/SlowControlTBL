@@ -10,6 +10,9 @@
 
 #include <json/value.h>
 
+#include <TTree.h>
+#include <TFile.h>
+
 #include "ConditionManager.h"
 #include "PythonDB.h"
 
@@ -141,5 +144,10 @@ class LoggingManager {
 
       Json::Value m_condition_json_root;
       Json::Value m_condition_json_list;
+
+      TFile *m_root_file;
+      TTree *m_tree;
+      event m_tmp_event;
+      std::size_t m_TDC_eventBuffer_flushSize;
 };
  

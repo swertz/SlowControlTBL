@@ -43,8 +43,14 @@ class ConditionManager {
             m_triggerRandomFrequency(0),
             m_TDC_backPressuring(false),
             m_TDC_fatal(false),
-            m_TDC_evtCounter(0)
+            m_TDC_evtCounter(0),
+            m_TDC_evtBuffer_flushSize(50)
         {
+            // No reliable way of knowing how many events we have
+            // in the TDC buffer if there are more than 1000
+            if (m_TDC_evtBuffer_flushSize > 1000)
+                m_TDC_evtBuffer_flushSize = 1000;
+
             std::cout << "Checking if the PC is connected to board..." << std::endl;
             UsbController *dummy_controller = new UsbController(DEBUG);
             bool canTalkToBoards = (dummy_controller->getStatus() == 0);
@@ -179,7 +185,7 @@ class ConditionManager {
         void startTDCReading();
         void stopTDCReading();
         std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
-        uint64_t getTDCEventCount() { return m_TDC_evtCounter; }
+        int64_t getTDCEventCount() { return m_TDC_evtCounter; }
 
         /*
          * Daemons: will run as threads in the background,
@@ -217,7 +223,8 @@ class ConditionManager {
         std::vector<event> m_TDC_evtBuffer;
         bool m_TDC_backPressuring;
         bool m_TDC_fatal;
-        uint64_t m_TDC_evtCounter;
+        int64_t m_TDC_evtCounter;
+        std::size_t m_TDC_evtBuffer_flushSize;
         
         std::shared_ptr<SetupManager> m_setup_manager;
 };

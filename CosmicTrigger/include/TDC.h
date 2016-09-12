@@ -184,24 +184,24 @@ public:
   static bool DataReady(unsigned int status);
   /**
    * \brief Returns if data ready in FIFO.
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   * \param status is the status word of the TDC.
    */
   
   static bool IsAlmostFull(unsigned int status);
   /**
    * \brief Returns if buffer is almost full.
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   * \param status is the status word of the TDC.
    */
   
   static bool IsFull(unsigned int status);
   /**
    * \brief Returns if buffer is full.
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
+   * \param status is the status word of the TDC.
    */
   
   static bool LostTrig(unsigned int status);
   /** \brief Returns if a trigger was lost
-   *  \param status is the status word of the TDC. If none is given, will read from TDC.
+   *  \param status is the status word of the TDC.
    */
 
   int  InError(unsigned int status = 4);

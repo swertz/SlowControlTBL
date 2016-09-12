@@ -47,7 +47,7 @@ unsigned int FakeSetupManager::getTDCStatus() {
 }
 
 int FakeSetupManager::getTDCNEvents() {
-    return 1;
+    return 10;
 }
 
 event FakeSetupManager::getTDCEvent() {

@@ -36,7 +36,7 @@ class RealSetupManager: public SetupManager {
         // Discriminator/coincidence manager
         virtual bool propagateDiscriSettings() override;
 
-        // TDC Window settings
+        // TDC settings
         virtual void setTDCWindowOffset(int offset) override;
         virtual void setTDCWindowWidth(int width) override;
         virtual unsigned int getTDCStatus() override;

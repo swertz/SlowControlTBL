@@ -19,7 +19,8 @@ LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint
     m_conditions(m_interface.getConditions()),
     is_running(true),
     m_continuous_log_time(m_continuous_log_time),
-    m_condition_json_list(Json::arrayValue)
+    m_condition_json_list(Json::arrayValue),
+    m_TDC_eventBuffer_flushSize(500)
 {
     std::cout << "Creating LoggingManager for run number " << run_number << "." << std::endl;
 
@@ -66,6 +67,9 @@ bool LoggingManager::checkRunNumber(uint32_t number) {
     if (std::ifstream("cond_log_run_" + std::to_string(number) + ".json")) {
         return true;
     }
+    if (std::ifstream("events_run_" + std::to_string(number) + ".root")) {
+        return true;
+    }
     return false;
 }
 
@@ -77,6 +81,9 @@ void LoggingManager::run(){
     initContinuousLog();
     
     auto logging_start = m_clock::now();
+
+    // Fill the log once at start
+    updateContinuousLog(logging_start);
     
     while(is_running){
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -114,6 +121,11 @@ void LoggingManager::initContinuousLog() {
     }
     
     m_continuous_log->freeze();
+
+    std::string root_file_name = "events_run_" + std::to_string(m_run_number) + ".root";
+    m_root_file = new TFile(root_file_name.c_str(), "recreate");
+    m_tree = new TTree("Events", "Events");
+    m_tree->Branch("Event", &m_tmp_event);
 }
     
 void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
@@ -134,21 +146,35 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
     }
 
     {
-        std::lock_guard<std::mutex> hv_lock(m_conditions.getTDCLock());
+        std::lock_guard<std::mutex> tdc_lock(m_conditions.getTDCLock());
             
+        if (m_conditions.getTDCEventBuffer().size() >= m_TDC_eventBuffer_flushSize) {
+            for (const auto& e: m_conditions.getTDCEventBuffer()) {
+                m_tmp_event = e;
+                m_tree->Fill();
+            }
+            m_conditions.getTDCEventBuffer().clear();
+        }
+        
         if (m_DB.get()) {
             m_DB->putValue(m_timeSeries_TDC_eventBufferCounter, m_conditions.getTDCEventBuffer().size(), time_now);
             m_DB->putValue(m_timeSeries_TDC_eventCounter, m_conditions.getTDCEventCount(), time_now);
         }
-        // FIXME
-        if (m_conditions.getTDCEventBuffer().size() >= 50)
-            m_conditions.getTDCEventBuffer().clear();
     }
-    
+ 
     m_continuous_log->putLine();
 }
 
 void LoggingManager::finalizeContinuousLog() {
+    // Update continuous log one last time
+    updateContinuousLog(m_clock::now());
+    
+    m_continuous_log.reset();
+
+    m_tree->Write();
+    m_root_file->Close();
+    m_tree = NULL;
+    m_root_file = NULL;
 }
 
 //--- ConditionManager logging

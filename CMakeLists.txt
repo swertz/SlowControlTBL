@@ -22,16 +22,29 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Threads REQUIRED)
 find_package(jsoncpp REQUIRED)
+find_package(ROOT REQUIRED 6)
 
 set(Python_ADDITIONAL_VERSIONS 2.6 2.7)
 find_package(PythonLibs REQUIRED)
 
-include_directories(${JSONCPP_INCLUDE_DIRS}/${JSONCPP_INCLUDE_PREFIX})
-include_directories("include")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/include)
-include_directories(${PYTHON_INCLUDE_DIRS})
 
-set(LIBS ${LIBS} ${JSONCPP_LIBRARIES} ${PYTHON_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/lib/libCAEN.so)
+include_directories(${JSONCPP_INCLUDE_DIRS}/${JSONCPP_INCLUDE_PREFIX})
+include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${ROOT_INCLUDE_DIR})
+
+set(LIBS 
+    ${LIBS}
+    ${JSONCPP_LIBRARY}
+    ${PYTHON_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${CMAKE_CURRENT_SOURCE_DIR}/CosmicTrigger/lib/libCAEN.so
+    ${ROOT_LIBRARIES}
+    )
+
+# Generate ROOT dictionary for Event class
+ROOT_GENERATE_DICTIONARY("DICT__event" "Event.h" LINKDEF "Linkdef.h") 
 
 qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h
     include/DiscriSettingsWindow.h)
@@ -46,11 +59,13 @@ set(SOURCES
     "src/FakeSetupManager.cpp"
     "src/DiscriSettingsWindow.cpp"
     "src/PythonDB.cpp"
+    "DICT__event.cxx"
     ${Interfaces_SRC}
     )
 
-add_executable(main ${SOURCES})
+add_executable(SlowControlTBL ${SOURCES})
 
-qt5_use_modules(main Widgets)
+qt5_use_modules(SlowControlTBL Widgets)
 
-target_link_libraries(main ${LIBS})
+target_link_libraries(SlowControlTBL ${LIBS})
+

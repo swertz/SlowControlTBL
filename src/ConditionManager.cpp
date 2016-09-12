@@ -107,13 +107,29 @@ void ConditionManager::daemonHV() {
 }
 
 void ConditionManager::startTDCReading() {
-    if (setState(State::running))
+    if (setState(State::running)) {
+        {
+            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+            m_TDC_evtCounter = 0;
+            m_TDC_evtBuffer.clear();
+            m_TDC_backPressuring = false;
+            m_TDC_fatal = false;
+        }
+
         thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
+    }
 }
 
 void ConditionManager::stopTDCReading() {
     if (m_state == State::running && setState(State::configured) )
         thread_handle_TDC.join();
+    
+    std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+    
+    m_TDC_evtCounter = 0;
+    m_TDC_evtBuffer.clear();
+    m_TDC_backPressuring = false;
+    m_TDC_fatal = false;
 }
 
 void ConditionManager::daemonTDC() {
@@ -152,15 +168,16 @@ void ConditionManager::daemonTDC() {
         if (data_ready) {
             std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
             
-            int n_evt = m_setup_manager->getTDCNEvents();
+            std::size_t n_evt = m_setup_manager->getTDCNEvents();
             
             // n_evt = 0 can happen if actual number of events between 1000 and 1024
-            // Also, read at most 50 events at once
-            if (n_evt > 5 || n_evt == 0)
-                n_evt = 5;
+            // Also, read at most m_TDC_evtBuffer_flushSize events at once
+            if (n_evt > m_TDC_evtBuffer_flushSize || n_evt == 0)
+                n_evt = m_TDC_evtBuffer_flushSize;
 
-            for (int i = 0; i < n_evt; i++) {
+            for (std::size_t i = 0; i < n_evt; i++) {
                 event this_evt = m_setup_manager->getTDCEvent();
+                // FIXME
                 this_evt.errorCode = 0;
 
                 // Data is corrupt -> stop saving it!
@@ -171,8 +188,6 @@ void ConditionManager::daemonTDC() {
                 m_TDC_evtBuffer.push_back(this_evt);
                 m_TDC_evtCounter++;
             }
-            
-            std::cout << "We have " << m_TDC_evtBuffer.size() << " events in buffer!" << std::endl;
         }
 
 
