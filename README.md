@@ -14,7 +14,10 @@ Slow control interface for Test Beam at Louvain
 - Initialise git repository: `git clone https://github.com/swertz/SlowControlTBL ; cd SlowControlTBL`
 - Get [CAEN library](http://www.caen.it/jsp/Template2/CaenProd.jsp?parent=38&idmod=689&downloadSoftwareFileId=11059), install (admin rights needed): `cd lib; sh install_x64`
 - Compile Martin's library: `pushd CosmicTrigger; make; popd`
-- Build: `mkdir build; cd build; cmake ..; make -j 4`. NB: if on cmslab computer, use `cmake28` instead of `cmake`
+- Build: `mkdir build; cd build; cmake ..; make -j 4`.
+- **NB**: If on cmslab computer, do:
+   - `source ~/root_installs/root-gh-master/builddir/bin/thisroot.sh` (to be run each time you'll run the interface)
+   - `cmake3 .. -DCMAKE_PREFIX_PATH="~/root_installs/root-gh-master/" -DPYTHON_INCLUDE_DIR="/usr/include/python2.7/" -DPYTHON_LIBRARY="/usr/lib64/libpython2.7.so" -DPYTHON_EXECUTABLE="/usr/bin/python2.7"`
 
 ## Setting up the database
 Instructions to set up the database for logging conditions and displaying in-browser in real time (NOT required to run the interface!).
