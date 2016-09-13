@@ -22,60 +22,8 @@ class ConditionManager {
     
     public:
 
-        ConditionManager(Interface& m_interface):
-            m_interface(m_interface),
-            m_HV_daemon_running(false),
-            m_hvpmt({
-                    { 1025, 0, 0, true },
-                    { 925, 0, 0, true },
-                    { 1225, 0, 0, true },
-                    { 0, 0, 0, false }
-                    }),
-            m_discriChannels({
-                    { true, 5, 200 },
-                    { true, 5, 200 },
-                    { true, 5, 200 },
-                    { false, 5, 200 },
-                    { false, 5, 200 }
-                    }),
-            m_channelsMajority(3),
-            m_triggerChannel(1),
-            m_triggerRandomFrequency(0),
-            m_TDC_backPressuring(false),
-            m_TDC_fatal(false),
-            m_TDC_evtCounter(0),
-            m_TDC_evtBuffer_flushSize(50)
-        {
-            // No reliable way of knowing how many events we have
-            // in the TDC buffer if there are more than 1000
-            if (m_TDC_evtBuffer_flushSize > 1000)
-                m_TDC_evtBuffer_flushSize = 1000;
-
-            std::cout << "Checking if the PC is connected to board..." << std::endl;
-            UsbController *dummy_controller = new UsbController(DEBUG);
-            bool canTalkToBoards = (dummy_controller->getStatus() == 0);
-            std::cout << "Deleting dummy USB controller..." << std::endl;
-            delete dummy_controller;
-            if (canTalkToBoards) {
-                std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
-                m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
-            } else {
-                std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
-                m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
-            }
-
-            startHVDaemon();
-        }
-
-        ~ConditionManager() {
-            try { 
-                stopTDCReading();
-            } catch(daemon_state_error) {};
-            
-            try { 
-                stopHVDaemon();
-            } catch(daemon_state_error) {};
-        }
+        ConditionManager(Interface& m_interface);
+        ~ConditionManager();
 
         class daemon_state_error: public std::runtime_error {
             using std::runtime_error::runtime_error;
@@ -148,27 +96,40 @@ class ConditionManager {
         void setChannelsMajority(int majority) { m_channelsMajority = majority; }
         bool propagateDiscriSettings();
 
-
         /*
          * Start/stop the TDC reading daemon
+         * Public, since done by interface when starting/stopping run
+         * LOCKS: TDC
          */
         void startTDCReading();
         void stopTDCReading();
         std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
         int64_t getTDCEventCount() { return m_TDC_evtCounter; }
 
+    private:
+
         /*
          * Daemons: will run as threads in the background,
          * handle the HV & TDC cards
          */
+        /* 
+         * HV daemon: updates read values for voltage & current
+         * LOCKS: HV
+         */
         void daemonHV();
+        /* 
+         * TDC daemon: reads TDC events, backpressures trigger if needed
+         * LOCKS: TDC, TTC
+         */
         void daemonTDC();
 
+        /*
+         * Start and stop HV daemon as background thread
+         * Private, since done when ConditionManager is constructed/destroyed
+         */
         void startHVDaemon();
         void stopHVDaemon();
        
-    private:
-
         std::mutex m_hv_mtx;
         std::mutex m_discri_mtx;
         std::mutex m_ttc_mtx;
@@ -179,6 +140,7 @@ class ConditionManager {
         std::thread thread_handle_HV;
         std::atomic<bool> m_HV_daemon_running;
         std::thread thread_handle_TDC;
+        std::atomic<bool> m_TDC_daemon_running;
 
         std::vector<HVPMT> m_hvpmt;
         std::vector<DiscriChannel> m_discriChannels;

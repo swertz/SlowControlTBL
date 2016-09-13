@@ -106,6 +106,7 @@ Interface::Interface(QWidget *parent):
         m_startBtn = new QPushButton("Start");
         m_startBtn->setDisabled(true);
         m_stopBtn = new QPushButton("Stop");
+        m_stopBtn->setDisabled(true);
         
         run_layout->addWidget(m_configureBtn);
         run_layout->addWidget(m_startBtn);
@@ -134,8 +135,9 @@ Interface::Interface(QWidget *parent):
         connect(m_startBtn, &QPushButton::clicked, this, &Interface::startRun);
         connect(m_stopBtn, &QPushButton::clicked, this, &Interface::stopRun);
         connect(m_discriTunerBtn, &QPushButton::clicked, this, &Interface::showDiscriSettingsWindow);
-        connect(quit, &QPushButton::clicked, this, &Interface::stopRun);
-        connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
+        connect(quit, &QPushButton::clicked, this, &Interface::quit);
+        //connect(quit, &QPushButton::clicked, this, &Interface::stopRun);
+        //connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
         resize(1000, 500);
         
@@ -153,21 +155,11 @@ void Interface::notifyUpdate() {
 }
 
 void Interface::updateConditionLog() {
-    // FIXME
-    if (running)
+    if (m_state != State::idle)
         m_logging_manager->updateConditionManagerLog();
 }
 
 void Interface::configureRun() {
-}
-
-void Interface::startRun() {
-    // FIXME
-    if (m_logging_manager.get()) {
-        // We are running! Nothing to do...
-        return;
-    }
-
     uint32_t run_number = m_runNumberSpin->value();
 
     // Check if we can start with the given run number
@@ -178,75 +170,116 @@ void Interface::startRun() {
             return;
     }
 
+    m_startBtn->setDisabled(false);
+    m_stopBtn->setDisabled(false);
+    m_configureBtn->setDisabled(true);
+
     m_logging_manager = std::make_shared<LoggingManager>(*this, run_number);
-    thread_handler = std::thread(&LoggingManager::run, std::ref(*m_logging_manager));
-
-    // Start listening for TDC events
-    m_conditions->startTDCReading();
-
+    
     // Freeze trigger configuration
-    m_triggerChannel_box->setDisabled(1);
-    m_triggerRandom_box->setDisabled(1);
+    m_triggerChannel_box->setDisabled(true);
+    m_triggerRandom_box->setDisabled(true);
     {
         // Propagate trigger info to condition manager and setup
         std::lock_guard<std::mutex> m_lock(m_conditions->getTTCLock());
         m_conditions->setTriggerChannel(m_triggerChannel_box->value());
         m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
-        m_conditions->startTrigger();
     }
-    
-    m_hv_group->setRunning();
     
     m_runNumberSpin->hide();
     m_runNumberLabel->setText(QString::number(run_number));
     m_runNumberLabel->show();
 
-    // FIXME
-    running = true;
+    m_state = State::configured;
+    
+    notifyUpdate();
+}
+
+void Interface::startRun() {
+    m_startBtn->setDisabled(true);
+    m_stopBtn->setDisabled(false);
+    m_configureBtn->setDisabled(true);
+
+    // Start continuous logging
+    thread_handler = std::thread(&LoggingManager::run, std::ref(*m_logging_manager));
+    
+    // Start listening for TDC events
+    m_conditions->startTDCReading();
+
+    // Start trigger
+    m_conditions->startTrigger();
+    
+    //m_hv_group->setRunning();
+    
+    m_state = State::running;
+    
+    notifyUpdate();
 }
     
 void Interface::stopRun() {
-    // FIXME
-    if (!m_logging_manager.get()) {
-        // We're not running... Nothing to stop!
-        return;
-    }
-
-    // Stop listening for TDC events
-    m_conditions->stopTDCReading();
-
-    m_logging_manager->stop();
-    thread_handler.join();
-    m_logging_manager.reset();
-    
-    // Stop trigger
-    {
-        std::lock_guard<std::mutex> m_lock(m_conditions->getTTCLock());
+    if (m_state == State::running) {
+        // Stop listening for TDC events
+        m_conditions->stopTDCReading();
+        
+        // Stop trigger
         m_conditions->stopTrigger();
+
+        // Stop logging
+        m_logging_manager->stop();
+        thread_handler.join();
+ 
+        //m_hv_group->setNotRunning();
     }
-    // Re enable the trigger settings
-    m_triggerChannel_box->setDisabled(0);
-    m_triggerRandom_box->setDisabled(0);
 
-    m_hv_group->setNotRunning();
-    
-    m_runNumberLabel->hide();
-    m_runNumberSpin->setValue(m_runNumberSpin->value() + 1);
-    m_runNumberSpin->show();
+    if (m_state == State::running || m_state == State::configured) {
+        m_startBtn->setDisabled(true);
+        m_stopBtn->setDisabled(true);
+        m_configureBtn->setDisabled(false);
+        
+        // Destroy logging manager
+        m_logging_manager.reset();
 
-    // FIXME
-    running = false;
-    
+        // Re enable the trigger settings
+        m_triggerChannel_box->setDisabled(false);
+        m_triggerRandom_box->setDisabled(false);
+
+        m_runNumberLabel->hide();
+        m_runNumberSpin->setValue(m_runNumberSpin->value() + 1);
+        m_runNumberSpin->show();
+    }
+
+    m_state = State::idle;
+
     notifyUpdate();
+}
+
+void Interface::quit() {
+    if (m_state == State::idle) {
+        qApp->quit();
+    }
+
+    if (m_state == State::configured) {
+        stopRun();
+        qApp->quit();
+    }
+
+    if (m_state == State::running) {
+        QMessageBox msgBox(QMessageBox::Warning, "Warning", "Warning: a run is ongoing! Do you really want to quit?", QMessageBox::Ok | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        if (msgBox.exec() == QMessageBox::Cancel)
+            return;
+
+        stopRun();
+        qApp->quit();
+    }
 }
 
 // When clicking the "DiscriSetting button", open a pop up window
 // and disable the button to prevent opening dozens of windows
 void Interface::showDiscriSettingsWindow() {
-    //this->hide();
     DiscriSettingsWindow *discriSettingsWindow = new DiscriSettingsWindow(*this);
     discriSettingsWindow->setWindowTitle("Discriminator Settings Dialog Box");
     discriSettingsWindow->show();
-    m_discriTunerBtn->setDisabled(1);
+    m_discriTunerBtn->setDisabled(true);
     m_discriTunerBtn->setText("Discriminator Settings (already open)");
 }

@@ -17,8 +17,14 @@ class DiscriSettingsWindow : public QDialog {
     Q_OBJECT
     
     public:
+        /*
+         * Constructor
+         * LOCKS: Discri
+         */
         DiscriSettingsWindow(Interface& m_interface);
+        
         void closeEvent(QCloseEvent *event);
+        
         struct DiscriChannel {
             QLabel *label;
             QCheckBox *included;
@@ -27,6 +33,10 @@ class DiscriSettingsWindow : public QDialog {
         };
 
     private slots:
+        /*
+         * Propagate new settings to ConditionManager
+         * LOCKS: Discri
+         */
         void propagate();
 
     private:

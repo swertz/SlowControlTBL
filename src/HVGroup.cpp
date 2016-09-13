@@ -161,7 +161,7 @@ void HVGroup::setHV() {
     }
 }
 
-void HVGroup::setRunning() {
+/*/void HVGroup::setRunning() {
     //for (HVEntry hventry: m_hventries) {
     //    hventry.sb_set_value->hide();
     //    hventry.setValue_label->show();
@@ -175,4 +175,4 @@ void HVGroup::setNotRunning() {
         hventry.setValue_label->hide();
     }
     m_set->setDisabled(0);
-}
+}*/

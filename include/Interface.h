@@ -64,9 +64,27 @@ class Interface : public QWidget {
         void notifyUpdate();
 
     private slots:
+        /*
+         * Configure the run, change state to "configured"
+         * LOCKS: TTC
+         */
         void configureRun();
+       
+        /*
+         * Start the run, change state to "running"
+         */
         void startRun();
+        
+        /*
+         * Stop the run, change state to "idle"
+         */
         void stopRun();
+        
+        /*
+         * Quit the application: depending on current state, stop run or not
+         */
+        void quit();
+        
         void showDiscriSettingsWindow();
 
     private:

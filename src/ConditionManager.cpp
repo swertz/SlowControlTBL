@@ -10,6 +10,62 @@
 #include "VmeUsbBridge.h"
 #include "Event.h"
 
+ConditionManager::ConditionManager(Interface& m_interface):
+    m_interface(m_interface),
+    m_HV_daemon_running(false),
+    m_TDC_daemon_running(false),
+    m_hvpmt({
+            { 1025, 0, 0, true },
+            { 925, 0, 0, true },
+            { 1225, 0, 0, true },
+            { 0, 0, 0, false }
+            }),
+    m_discriChannels({
+            { true, 5, 200 },
+            { true, 5, 200 },
+            { true, 5, 200 },
+            { false, 5, 200 },
+            { false, 5, 200 }
+            }),
+    m_channelsMajority(3),
+    m_triggerChannel(1),
+    m_triggerRandomFrequency(0),
+    m_TDC_backPressuring(false),
+    m_TDC_fatal(false),
+    m_TDC_evtCounter(0),
+    m_TDC_evtBuffer_flushSize(50)
+{
+    // No reliable way of knowing how many events we have
+    // in the TDC buffer if there are more than 1000
+    if (m_TDC_evtBuffer_flushSize > 1000)
+        m_TDC_evtBuffer_flushSize = 1000;
+
+    std::cout << "Checking if the PC is connected to board..." << std::endl;
+    UsbController *dummy_controller = new UsbController(DEBUG);
+    bool canTalkToBoards = (dummy_controller->getStatus() == 0);
+    std::cout << "Deleting dummy USB controller..." << std::endl;
+    delete dummy_controller;
+    if (canTalkToBoards) {
+        std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
+        m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
+    } else {
+        std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
+        m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
+    }
+
+    startHVDaemon();
+}
+
+ConditionManager::~ConditionManager() {
+    try { 
+        stopTDCReading();
+    } catch(daemon_state_error) {};
+    
+    try { 
+        stopHVDaemon();
+    } catch(daemon_state_error) {};
+}
+
 bool ConditionManager::propagateHVPMTValue(std::size_t id) {
     bool result = m_setup_manager->setHVPMT(id);
 
@@ -63,50 +119,46 @@ void ConditionManager::daemonHV() {
             m_hvpmt.at(id).readValue = hv_values.at(id).first;
             m_hvpmt.at(id).readCurrent = hv_values.at(id).second;
         }
-
     }
 }
 
 void ConditionManager::startTDCReading() {
-    /*if (m_interface.getState() != Interface::State::configured) {
-        throw daemon_state_error("TDC daemon can only be started by a configured interface");
-    }*/
-    
     if (thread_handle_TDC.joinable()) {
         throw daemon_state_error("TDC daemon was already running");
     }
     
-    std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
-    m_TDC_evtCounter = 0;
-    m_TDC_evtBuffer.clear();
-    m_TDC_backPressuring = false;
-    m_TDC_fatal = false;
+    {
+        std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+        m_TDC_evtCounter = 0;
+        m_TDC_evtBuffer.clear();
+        m_TDC_backPressuring = false;
+        m_TDC_fatal = false;
+    }
 
+    m_TDC_daemon_running = true;
     thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
 }
 
 void ConditionManager::stopTDCReading() {
-    /*if (m_interface.getState() != Interface::State::running) {
-        throw daemon_state_error("TDC daemon can only be stopped by a running interface");
-    }*/
-    
     if (!thread_handle_TDC.joinable()) {
         throw daemon_state_error("TDC daemon was not running");
     }
 
+    m_TDC_daemon_running = false;
     thread_handle_TDC.join();
-    
-    std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
-    
-    m_TDC_evtCounter = 0;
-    m_TDC_evtBuffer.clear();
-    m_TDC_backPressuring = false;
-    m_TDC_fatal = false;
+ 
+    {
+        std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+        m_TDC_evtCounter = 0;
+        m_TDC_evtBuffer.clear();
+        m_TDC_backPressuring = false;
+        m_TDC_fatal = false;
+    }
 }
 
 void ConditionManager::daemonTDC() {
     
-    while(m_interface.getState() == Interface::State::running) {
+    while(m_TDC_daemon_running) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         event m_evt; 
@@ -149,8 +201,6 @@ void ConditionManager::daemonTDC() {
 
             for (std::size_t i = 0; i < n_evt; i++) {
                 event this_evt = m_setup_manager->getTDCEvent();
-                // FIXME
-                this_evt.errorCode = 0;
 
                 // Data is corrupt -> stop saving it!
                 if (this_evt.errorCode) {

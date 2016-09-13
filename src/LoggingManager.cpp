@@ -57,7 +57,16 @@ LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint
         m_timeSeries_TDC_eventBufferCounter = m_DB->addTimeSeries("TDC.nEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
         m_timeSeries_TDC_eventCounter = m_DB->addTimeSeries("TDC.nEvt", { { "run_number", std::to_string(m_run_number) } });
     }
+    
+    initConditionManagerLog();
+    initContinuousLog();
+}
 
+LoggingManager::~LoggingManager() {
+    std::cout << "Destroying LoggingManager." << std::endl;
+    
+    finalizeConditionManagerLog();
+    finalizeContinuousLog();
 }
 
 bool LoggingManager::checkRunNumber(uint32_t number) {
@@ -74,11 +83,7 @@ bool LoggingManager::checkRunNumber(uint32_t number) {
 }
 
 void LoggingManager::run(){
-    
     std::cout << "Starting logger." << std::endl;
-    
-    initConditionManagerLog();
-    initContinuousLog();
     
     auto logging_start = m_clock::now();
 
@@ -98,8 +103,6 @@ void LoggingManager::run(){
     }
 
     std::cout << "Stopping logger." << std::endl;
-    finalizeConditionManagerLog();
-    finalizeContinuousLog();
 }
 
 void LoggingManager::stop() {

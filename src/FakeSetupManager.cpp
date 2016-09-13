@@ -51,5 +51,7 @@ int FakeSetupManager::getTDCNEvents() {
 }
 
 event FakeSetupManager::getTDCEvent() {
-    return event();
+    event m_event;
+    m_event.errorCode = 0;
+    return m_event;
 }

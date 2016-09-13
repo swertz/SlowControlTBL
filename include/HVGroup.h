@@ -20,7 +20,12 @@ class HVGroup : public QWidget {
     Q_OBJECT
 
     public:
+        /*
+         * Constructor
+         * LOCKS: HV
+         */
         HVGroup(Interface& m_interface);
+        
         virtual ~HVGroup() {}
         
         struct HVEntry {
@@ -36,10 +41,25 @@ class HVGroup : public QWidget {
         void notifyUpdate();
 
     private slots:
-        void setRunning();
-        void setNotRunning();
+        //void setRunning();
+        //void setNotRunning();
+        
+        /*
+         * Switch on all HVs (propagate to ConditionManager)
+         * LOCKS: HV
+         */
         void switchON();
+        
+        /* 
+         * Switch off all HVs (propagate to ConditionManager)
+         * LOCKS: HV
+         */
         void switchOFF();
+        
+        /*
+         * Set all HV voltages (propagate to ConditionManager)
+         * LOCKS: HV
+         */
         void setHV();
 
     private:
