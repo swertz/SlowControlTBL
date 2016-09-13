@@ -156,6 +156,10 @@ void ConditionManager::stopTDCReading() {
     }
 }
 
+void ConditionManager::configureTDC() {
+    // FIXME
+}
+
 void ConditionManager::daemonTDC() {
     
     while(m_TDC_daemon_running) {

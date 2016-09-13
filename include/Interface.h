@@ -66,7 +66,7 @@ class Interface : public QWidget {
     private slots:
         /*
          * Configure the run, change state to "configured"
-         * LOCKS: TTC
+         * LOCKS: TTC, TDC
          */
         void configureRun();
        
@@ -123,4 +123,8 @@ class Interface : public QWidget {
 
         QSpinBox *m_triggerChannel_box;
         QSpinBox *m_triggerRandom_box;
+        QLabel *m_tdc_backPressure_label;
+        QLabel *m_tdc_fatal_label;
+        QLabel *m_tdc_ok_label;
+        QLabel *m_tdc_eventCounter_label;
 };

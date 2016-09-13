@@ -14,7 +14,7 @@
 
 class Interface;
 
-class HVGroup : public QWidget {
+class HVGroup : public QGroupBox {
     friend class Interface;
     
     Q_OBJECT
@@ -54,7 +54,7 @@ class HVGroup : public QWidget {
          * Switch off all HVs (propagate to ConditionManager)
          * LOCKS: HV
          */
-        void switchOFF();
+        //void switchOFF();
         
         /*
          * Set all HV voltages (propagate to ConditionManager)
@@ -64,7 +64,7 @@ class HVGroup : public QWidget {
 
     private:
       
-        QGroupBox *m_box;
+        //QGroupBox *m_box;
         std::vector<HVEntry> m_hventries;
         QPushButton *m_set;
         QPushButton *m_on_btn;

@@ -53,6 +53,8 @@ class ConditionManager {
          * will take care of that when they call them. 
          * Trying to lock a mutex in a getter/setter while the same lock was locked before by the
          * user would result in freezing the program.
+         * ALL functions requesting a lock are documented => ALWAYS check the functions you are calling
+         * if you request a lock yourself!!!
          */
         std::mutex& getHVLock() { return m_hv_mtx; }
         std::mutex& getTDCLock() { return m_tdc_mtx; }
@@ -103,15 +105,18 @@ class ConditionManager {
          */
         void startTDCReading();
         void stopTDCReading();
+        
+        /*
+         * Configure the TDC
+         */
+        void configureTDC();
         std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
         int64_t getTDCEventCount() { return m_TDC_evtCounter; }
+        bool checkTDCBackPressure() { return m_TDC_backPressuring; }
+        bool checkTDCFatalError() { return m_TDC_fatal; }
 
     private:
 
-        /*
-         * Daemons: will run as threads in the background,
-         * handle the HV & TDC cards
-         */
         /* 
          * HV daemon: updates read values for voltage & current
          * LOCKS: HV

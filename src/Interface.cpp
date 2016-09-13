@@ -86,6 +86,26 @@ Interface::Interface(QWidget *parent):
         runNumber_layout->addWidget(m_runNumberLabel);
         runNumber_layout->addWidget(m_runNumberSpin);
 
+        m_configureBtn = new QPushButton("Configure");
+        m_startBtn = new QPushButton("Start");
+        m_startBtn->setDisabled(true);
+        m_stopBtn = new QPushButton("Stop");
+        m_stopBtn->setDisabled(true);
+ 
+        run_layout->addWidget(m_configureBtn);
+        run_layout->addWidget(m_startBtn);
+        run_layout->addWidget(m_stopBtn);
+        run_layout->addStretch();
+        run_layout->addLayout(runNumber_layout);
+        run_box->setLayout(run_layout);
+        
+        /* ----- HV control box ----- */
+        m_hv_group = new HVGroup(*this);
+        
+        /* ------ TDC & TTC control box -----  */
+        QGroupBox *tdc_ttc_box = new QGroupBox("Trigger + TDC");
+        QVBoxLayout *tdc_ttc_layout = new QVBoxLayout();
+        
         QHBoxLayout *triggerControl_layout = new QHBoxLayout();
         QLabel *triggerLabel = new QLabel("Trigger control: ");
         QLabel *triggerChannelLabel = new QLabel("Channel");
@@ -102,22 +122,35 @@ Interface::Interface(QWidget *parent):
         triggerControl_layout->addWidget(triggerRandomLabel);
         triggerControl_layout->addWidget(m_triggerRandom_box);
         
-        m_configureBtn = new QPushButton("Configure");
-        m_startBtn = new QPushButton("Start");
-        m_startBtn->setDisabled(true);
-        m_stopBtn = new QPushButton("Stop");
-        m_stopBtn->setDisabled(true);
+        QHBoxLayout *tdc_status_layout = new QHBoxLayout();
         
-        run_layout->addWidget(m_configureBtn);
-        run_layout->addWidget(m_startBtn);
-        run_layout->addWidget(m_stopBtn);
-        run_layout->addLayout(runNumber_layout);
-        run_layout->addLayout(triggerControl_layout);
-        run_box->setLayout(run_layout);
+        m_tdc_backPressure_label = new QLabel("TDC BACKPRESSURE");
+        m_tdc_backPressure_label->setStyleSheet("QLabel { font-weight: bold; background-color: orange; }");
+        m_tdc_backPressure_label->setAlignment(Qt::AlignCenter);
+        m_tdc_backPressure_label->hide();
+        tdc_status_layout->addWidget(m_tdc_backPressure_label);
         
-        /* ----- HV control box ----- */
-        m_hv_group = new HVGroup(*this);
+        m_tdc_fatal_label = new QLabel("TDC FATAL ERROR");
+        m_tdc_fatal_label->setStyleSheet("QLabel { font-weight: bold; background-color: red; }");
+        m_tdc_fatal_label->setAlignment(Qt::AlignCenter);
+        m_tdc_fatal_label->hide();
+        tdc_status_layout->addWidget(m_tdc_fatal_label);
         
+        m_tdc_ok_label = new QLabel("TDC taking data");
+        m_tdc_ok_label->setStyleSheet("QLabel { font-weight: bold; background-color: green; }");
+        m_tdc_ok_label->setAlignment(Qt::AlignCenter);
+        m_tdc_ok_label->hide();
+        tdc_status_layout->addWidget(m_tdc_ok_label);
+        
+        m_tdc_eventCounter_label = new QLabel("TDC events recorded: 0");
+        m_tdc_eventCounter_label->setAlignment(Qt::AlignCenter);
+        m_tdc_eventCounter_label->hide();
+        tdc_status_layout->addWidget(m_tdc_eventCounter_label);
+
+        tdc_ttc_layout->addLayout(triggerControl_layout);
+        tdc_ttc_layout->addLayout(tdc_status_layout);
+        tdc_ttc_box->setLayout(tdc_ttc_layout);
+
         /* ----- Master grid ----- */
         QPushButton *quit = new QPushButton("Quit");
 
@@ -126,6 +159,7 @@ Interface::Interface(QWidget *parent):
         master_grid->addWidget(run_box, 0, 0);
         master_grid->addWidget(m_hv_group, 0, 1);
         master_grid->addWidget(m_discriTunerBtn, 1, 0);
+        master_grid->addWidget(tdc_ttc_box, 1, 1);
         master_grid->addWidget(quit, 2, 0);
 
         setLayout(master_grid);
@@ -136,11 +170,7 @@ Interface::Interface(QWidget *parent):
         connect(m_stopBtn, &QPushButton::clicked, this, &Interface::stopRun);
         connect(m_discriTunerBtn, &QPushButton::clicked, this, &Interface::showDiscriSettingsWindow);
         connect(quit, &QPushButton::clicked, this, &Interface::quit);
-        //connect(quit, &QPushButton::clicked, this, &Interface::stopRun);
-        //connect(quit, &QPushButton::clicked, qApp, &QApplication::quit);
 
-        resize(1000, 500);
-        
         m_timer = new QTimer(this);
         connect(m_timer, &QTimer::timeout, this, &Interface::notifyUpdate);
         m_timer->start(250);
@@ -151,7 +181,31 @@ ConditionManager& Interface::getConditions() {
 }
 
 void Interface::notifyUpdate() {
+    // Update HV values
     m_hv_group->notifyUpdate();
+
+    if (m_state == State::running) {
+        // Update TDC status flags
+        {
+            std::lock_guard<std::mutex> m_lock(m_conditions->getTDCLock());
+            if (m_conditions->checkTDCBackPressure()) {
+                m_tdc_backPressure_label->show();
+                m_tdc_ok_label->hide();
+            } else {
+                m_tdc_backPressure_label->hide();
+            }
+            if (m_conditions->checkTDCFatalError()) {
+                m_tdc_fatal_label->show();
+                m_tdc_ok_label->hide();
+            } else {
+                m_tdc_fatal_label->hide();
+            }
+            if (!m_conditions->checkTDCFatalError() && !m_conditions->checkTDCBackPressure()) {
+                m_tdc_ok_label->show();
+            }
+            m_tdc_eventCounter_label->setText("TDC events recorded: " + QString::number(m_conditions->getTDCEventCount()));
+        }
+    }
 }
 
 void Interface::updateConditionLog() {
@@ -185,10 +239,17 @@ void Interface::configureRun() {
         m_conditions->setTriggerChannel(m_triggerChannel_box->value());
         m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
     }
+
+    {
+        std::lock_guard<std::mutex> m_lock(m_conditions->getTDCLock());
+        m_conditions->configureTDC();
+    }
     
     m_runNumberSpin->hide();
     m_runNumberLabel->setText(QString::number(run_number));
     m_runNumberLabel->show();
+
+    m_tdc_eventCounter_label->show();
 
     m_state = State::configured;
     
@@ -208,6 +269,8 @@ void Interface::startRun() {
 
     // Start trigger
     m_conditions->startTrigger();
+    
+    m_tdc_ok_label->show();
     
     //m_hv_group->setRunning();
     
@@ -246,6 +309,12 @@ void Interface::stopRun() {
         m_runNumberLabel->hide();
         m_runNumberSpin->setValue(m_runNumberSpin->value() + 1);
         m_runNumberSpin->show();
+    
+        m_tdc_eventCounter_label->hide();
+        m_tdc_eventCounter_label->setText("TDC events recorded: 0");
+        m_tdc_backPressure_label->hide();
+        m_tdc_fatal_label->hide();
+        m_tdc_ok_label->hide();
     }
 
     m_state = State::idle;

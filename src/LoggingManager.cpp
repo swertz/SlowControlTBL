@@ -106,7 +106,6 @@ void LoggingManager::run(){
 }
 
 void LoggingManager::stop() {
-    std::cout << "LoggingManager was asked to stop." << std::endl;
     is_running = false;
 }
 
