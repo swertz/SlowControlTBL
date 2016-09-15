@@ -108,8 +108,7 @@ void HVGroup::notifyUpdate() {
     for (int hv_id = 0; hv_id < m_interface.m_conditions->getNHVPMT(); hv_id++) {
         if (std::abs(m_interface.m_conditions->getHVPMTReadValue(hv_id) - m_interface.m_conditions->getHVPMTSetValue(hv_id))/float(m_interface.m_conditions->getHVPMTSetValue(hv_id)) > 0.05) {
             m_hventries.at(hv_id).readValue_label->setStyleSheet("QLabel { background-color : red; }");
-        }
-        else {
+        } else {
             m_hventries.at(hv_id).readValue_label->setStyleSheet("QLabel { background-color : green; }");
         }
         m_hventries.at(hv_id).readValue_label->setText(QString::number(m_interface.m_conditions->getHVPMTReadValue(hv_id)));

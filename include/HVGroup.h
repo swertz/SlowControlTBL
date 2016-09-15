@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include <QWidget>
 #include <QLabel>
@@ -14,7 +13,7 @@
 
 class Interface;
 
-class HVGroup : public QGroupBox {
+class HVGroup: public QGroupBox {
     friend class Interface;
     
     Q_OBJECT
@@ -36,9 +35,6 @@ class HVGroup : public QGroupBox {
             QSpinBox *sb_set_value;
             QCheckBox *cb_set_state;
         };
-
-    public:
-        void notifyUpdate();
 
     private slots:
         //void setRunning();
@@ -63,6 +59,7 @@ class HVGroup : public QGroupBox {
         void setHV();
 
     private:
+        void notifyUpdate();
       
         //QGroupBox *m_box;
         std::vector<HVEntry> m_hventries;

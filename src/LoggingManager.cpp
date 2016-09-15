@@ -13,7 +13,7 @@
 #include "Utils.h"
 #include "PythonDB.h"
 
-LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint32_t m_continuous_log_time):
+LoggingManager::LoggingManager(Interface& m_interface, std::uint32_t run_number, std::uint32_t m_continuous_log_time):
     m_interface(m_interface),
     m_run_number(run_number),
     m_conditions(m_interface.getConditions()),
@@ -31,32 +31,6 @@ LoggingManager::LoggingManager(Interface& m_interface, uint32_t run_number, uint
         std::cerr << "Warning when starting LoggingManager: " << e.what() << std::endl;
         m_DB.reset();
     }
-    // Create all the time series for values to be monitored in-browser
-    if (m_DB.get()) {
-        for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
-            m_timeSeries_HVPMT_readVal.push_back(
-                    m_DB->addTimeSeries(
-                        "HVPMT.read", 
-                        { 
-                            { "hv", std::to_string(id) },
-                            { "run_number", std::to_string(m_run_number) }
-                        }
-                    )
-                );
-            m_timeSeries_HVPMT_setVal.push_back(
-                    m_DB->addTimeSeries(
-                        "HVPMT.set", 
-                        { 
-                            { "hv", std::to_string(id) },
-                            { "run_number", std::to_string(m_run_number) }
-                        }
-                    )
-                );
-        }
-
-        m_timeSeries_TDC_eventBufferCounter = m_DB->addTimeSeries("TDC.nEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
-        m_timeSeries_TDC_eventCounter = m_DB->addTimeSeries("TDC.nEvt", { { "run_number", std::to_string(m_run_number) } });
-    }
     
     initConditionManagerLog();
     initContinuousLog();
@@ -69,7 +43,7 @@ LoggingManager::~LoggingManager() {
     finalizeContinuousLog();
 }
 
-bool LoggingManager::checkRunNumber(uint32_t number) {
+bool LoggingManager::checkRunNumber(std::uint32_t number) {
     if (std::ifstream("cont_log_run_" + std::to_string(number) + ".csv")) {
         return true;
     }
@@ -113,17 +87,46 @@ void LoggingManager::stop() {
 //--- Continuous logging
 
 void LoggingManager::initContinuousLog() {
+    // Create all the time series for values to be monitored in-browser
+    if (m_DB.get()) {
+        for (std::size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+            m_timeSeries_HVPMT_readVal.push_back(
+                    m_DB->addTimeSeries(
+                        "HVPMT.read", 
+                        { 
+                            { "hv", std::to_string(id) },
+                            { "run_number", std::to_string(m_run_number) }
+                        }
+                    )
+                );
+            m_timeSeries_HVPMT_setVal.push_back(
+                    m_DB->addTimeSeries(
+                        "HVPMT.set", 
+                        { 
+                            { "hv", std::to_string(id) },
+                            { "run_number", std::to_string(m_run_number) }
+                        }
+                    )
+                );
+        }
+
+        m_timeSeries_TDC_eventBufferCounter = m_DB->addTimeSeries("TDC.nEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
+        m_timeSeries_TDC_eventCounter = m_DB->addTimeSeries("TDC.nEvt", { { "run_number", std::to_string(m_run_number) } });
+    }
+
+    // Initialise the CSV file
     m_continuous_log = std::make_shared<CSV>("cont_log_run_" + std::to_string(m_run_number) + ".csv");
 
     m_continuous_log->addField("timestamp");
-    
-    for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+    for (std::size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
         m_continuous_log->addField("hv_" + std::to_string(id) + "_setValue");
         m_continuous_log->addField("hv_" + std::to_string(id) + "_readValue");
     }
+    m_continuous_log->addField("tdc_nEvt");
     
     m_continuous_log->freeze();
 
+    // Initialise the ROOT file
     std::string root_file_name = "events_run_" + std::to_string(m_run_number) + ".root";
     m_root_file = new TFile(root_file_name.c_str(), "recreate");
     m_tree = new TTree("Events", "Events");
@@ -131,11 +134,11 @@ void LoggingManager::initContinuousLog() {
 }
     
 void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
-    uint64_t time_now = timeNowStamp<m_clock>(log_time);
+    std::uint64_t time_now = timeNowStamp<m_clock>(log_time);
     
     m_continuous_log->setField("timestamp", time_now);
     
-    for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+    for (std::size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
         std::lock_guard<std::mutex> hv_lock(m_conditions.getHVLock());
         
         m_continuous_log->setField("hv_" + std::to_string(id) + "_setValue", m_conditions.getHVPMTSetValue(id));
@@ -157,6 +160,8 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
             }
             m_conditions.getTDCEventBuffer().clear();
         }
+ 
+        m_continuous_log->setField("tdc_nEvt", m_conditions.getTDCEventCount());
         
         if (m_DB.get()) {
             m_DB->putValue(m_timeSeries_TDC_eventBufferCounter, m_conditions.getTDCEventBuffer().size(), time_now);
@@ -201,7 +206,7 @@ void LoggingManager::updateConditionManagerLog(bool first_time, m_clock::time_po
     { // Lock the HV using the conditions manager to read all the values at once
         std::lock_guard<std::mutex> hv_lock(m_conditions.getHVLock());
         
-        for (size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
+        for (std::size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
             Json::Value this_value;
             this_value["setValue"] = m_conditions.getHVPMTSetValue(id);
             this_value["readValue"] = m_conditions.getHVPMTReadValue(id);
@@ -213,7 +218,7 @@ void LoggingManager::updateConditionManagerLog(bool first_time, m_clock::time_po
     { // Lock the Discriminator using the conditions manager to read all the values at once
         std::lock_guard<std::mutex> discri_lock(m_conditions.getDiscriLock());
 
-        for (size_t id = 0; id < m_conditions.getNDiscriChannels(); id++) {
+        for (std::size_t id = 0; id < m_conditions.getNDiscriChannels(); id++) {
             Json::Value this_value;
             this_value["included"] = m_conditions.getDiscriChannelState(id);
             this_value["threshold"] = m_conditions.getDiscriChannelThreshold(id);

@@ -46,8 +46,12 @@ set(LIBS
 # Generate ROOT dictionary for Event class
 ROOT_GENERATE_DICTIONARY("DICT__event" "Event.h" LINKDEF "Linkdef.h") 
 
-qt5_wrap_cpp(Interfaces_SRC include/Interface.h include/HVGroup.h
+qt5_wrap_cpp(Interfaces_SRC
+    include/Interface.h
+    include/HVGroup.h
+    include/Trigger_TDC_Group.h
     include/DiscriSettingsWindow.h)
+    
 
 set(SOURCES
     "src/main.cpp"
@@ -55,6 +59,7 @@ set(SOURCES
     "src/LoggingManager.cpp"
     "src/ConditionManager.cpp"
     "src/HVGroup.cpp"
+    "src/Trigger_TDC_Group.cpp"
     "src/RealSetupManager.cpp"
     "src/FakeSetupManager.cpp"
     "src/DiscriSettingsWindow.cpp"

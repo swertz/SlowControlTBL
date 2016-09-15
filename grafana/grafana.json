@@ -60,7 +60,7 @@
               "currentTagKey": "",
               "currentTagValue": "",
               "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.read",
@@ -79,7 +79,7 @@
               "currentTagKey": "",
               "currentTagValue": "",
               "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.read",
@@ -98,7 +98,7 @@
               "currentTagKey": "",
               "currentTagValue": "",
               "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "downsampleFillPolicy": "zero",
               "filters": [],
               "metric": "HVPMT.read",
               "refId": "B",
@@ -185,8 +185,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.set",
@@ -204,8 +204,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.set",
@@ -223,8 +223,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.set",
@@ -279,7 +279,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 5,
+          "id": 4,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -306,14 +306,15 @@
             {
               "aggregator": "sum",
               "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
-              "metric": "TDC.nEvtBuffer",
-              "refId": "A"
+              "downsampleFillPolicy": "zero",
+              "metric": "TDC.nEvt",
+              "refId": "A",
+              "disableDownsampling": false
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "TDC event buffer (interface)",
+          "title": "TDC event counter",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -356,7 +357,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 4,
+          "id": 5,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -383,14 +384,14 @@
             {
               "aggregator": "sum",
               "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
-              "metric": "TDC.nEvt",
+              "downsampleFillPolicy": "zero",
+              "metric": "TDC.nEvtBuffer",
               "refId": "A"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "TDC event counter",
+          "title": "TDC event buffer (interface)",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -425,7 +426,7 @@
     }
   ],
   "time": {
-    "from": "now-24h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -460,8 +461,9 @@
   "annotations": {
     "list": []
   },
+  "refresh": "1s",
   "schemaVersion": 12,
-  "version": 15,
+  "version": 16,
   "links": [],
   "gnetId": null
 }

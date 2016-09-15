@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 #include "SetupManager.h"
@@ -32,7 +33,8 @@ class RealSetupManager: public SetupManager {
 
         // Trigger control : channel 1 --> physics trigger, channel 5 --> random triggers
         virtual void setTrigger(int channel, int randomFrequency) override;
-
+        virtual std::int64_t getTTCEventNumber() override;
+        
         // Discriminator/coincidence manager
         virtual bool propagateDiscriSettings() override;
 
@@ -42,6 +44,7 @@ class RealSetupManager: public SetupManager {
         virtual unsigned int getTDCStatus() override;
         virtual int getTDCNEvents() override;
         virtual event getTDCEvent() override;
+        virtual void configureTDC() override;
 
     private:
 

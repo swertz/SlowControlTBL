@@ -15,12 +15,14 @@
 class ConditionManager;
 class LoggingManager;
 class HVGroup;
+class Trigger_TDC_Group;
 class DiscriSettingsWindow;
 
 class Interface : public QWidget {
     friend class HVGroup;
+    friend class Trigger_TDC_Group;
     friend class DiscriSettingsWindow;
-    
+ 
     Q_OBJECT
 
     public:
@@ -59,14 +61,12 @@ class Interface : public QWidget {
          */
         static bool checkTransition(Interface::State state_from, Interface::State state_to);
 
-    public slots:
+    private slots:
         void updateConditionLog();
         void notifyUpdate();
 
-    private slots:
         /*
          * Configure the run, change state to "configured"
-         * LOCKS: TTC, TDC
          */
         void configureRun();
        
@@ -92,6 +92,7 @@ class Interface : public QWidget {
         void setCounter(int i);
 
         HVGroup* m_hv_group;
+        Trigger_TDC_Group* m_ttc_tdc_group;
         
         // Use a timer to refresh the interface periodically
         QTimer* m_timer;
@@ -120,11 +121,4 @@ class Interface : public QWidget {
         QSpinBox *m_runNumberSpin;
         QLabel *m_runNumberLabel;
         QPushButton *m_discriTunerBtn;
-
-        QSpinBox *m_triggerChannel_box;
-        QSpinBox *m_triggerRandom_box;
-        QLabel *m_tdc_backPressure_label;
-        QLabel *m_tdc_fatal_label;
-        QLabel *m_tdc_ok_label;
-        QLabel *m_tdc_eventCounter_label;
 };

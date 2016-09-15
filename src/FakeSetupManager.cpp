@@ -32,6 +32,10 @@ void FakeSetupManager::setTrigger(int channel, int frequency) {
     return;
 }
 
+std::int64_t FakeSetupManager::getTTCEventNumber() {
+    return 10;
+}
+
 bool FakeSetupManager::propagateDiscriSettings() {
     return true;
 }
@@ -54,4 +58,7 @@ event FakeSetupManager::getTDCEvent() {
     event m_event;
     m_event.errorCode = 0;
     return m_event;
+}
+
+void FakeSetupManager::configureTDC() {
 }

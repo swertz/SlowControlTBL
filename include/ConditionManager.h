@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <cstdint>
 
 #include "SetupManager.h"
 #include "Interface.h"
@@ -101,7 +102,6 @@ class ConditionManager {
         /*
          * Start/stop the TDC reading daemon
          * Public, since done by interface when starting/stopping run
-         * LOCKS: TDC
          */
         void startTDCReading();
         void stopTDCReading();
@@ -111,7 +111,7 @@ class ConditionManager {
          */
         void configureTDC();
         std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
-        int64_t getTDCEventCount() { return m_TDC_evtCounter; }
+        std::int64_t getTDCEventCount() { return m_TDC_evtCounter; }
         bool checkTDCBackPressure() { return m_TDC_backPressuring; }
         bool checkTDCFatalError() { return m_TDC_fatal; }
 
@@ -157,7 +157,7 @@ class ConditionManager {
         std::vector<event> m_TDC_evtBuffer;
         bool m_TDC_backPressuring;
         bool m_TDC_fatal;
-        int64_t m_TDC_evtCounter;
+        std::int64_t m_TDC_evtCounter;
         std::size_t m_TDC_evtBuffer_flushSize;
         
         std::shared_ptr<SetupManager> m_setup_manager;

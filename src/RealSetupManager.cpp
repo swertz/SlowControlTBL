@@ -89,6 +89,10 @@ void RealSetupManager::setTrigger(int channel, int randomFrequency) {
     }
     m_TTC.changeChannel(channel);
 }
+        
+std::int64_t RealSetupManager::getTTCEventNumber() {
+    return m_TTC.getEventNumber();
+}
 
 void RealSetupManager::setTDCWindowOffset(int offset) {
     m_TDC.setWindowOffset(offset);
@@ -108,6 +112,10 @@ int RealSetupManager::getTDCNEvents() {
 
 event RealSetupManager::getTDCEvent() {
     return m_TDC.GetEvent();
+}
+
+void RealSetupManager::configureTDC() {
+
 }
 
 //std::vector<double> RealSetupManager::getHVPMTState() {
