@@ -2,6 +2,7 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QSpinBox>
 
@@ -15,6 +16,7 @@ Trigger_TDC_Group::Trigger_TDC_Group(Interface& m_interface):
     m_interface(m_interface),
     QGroupBox("Trigger + TDC", &m_interface) {
 
+        /* -- Trigger settings -- */
         QVBoxLayout *tdc_ttc_layout = new QVBoxLayout();
         
         QHBoxLayout *triggerControl_layout = new QHBoxLayout();
@@ -33,58 +35,94 @@ Trigger_TDC_Group::Trigger_TDC_Group(Interface& m_interface):
         triggerControl_layout->addWidget(triggerRandomLabel);
         triggerControl_layout->addWidget(m_triggerRandom_box);
         
-        QHBoxLayout *tdc_status_layout = new QHBoxLayout();
+        /* -- Status -- */
+        QGridLayout *m_status_layout = new QGridLayout();
         
-        m_tdc_backPressure_label = new QLabel("TDC BACKPRESSURE");
-        m_tdc_backPressure_label->setStyleSheet("QLabel { font-weight: bold; background-color: orange; }");
-        m_tdc_backPressure_label->setAlignment(Qt::AlignCenter);
-        m_tdc_backPressure_label->hide();
-        tdc_status_layout->addWidget(m_tdc_backPressure_label);
+        /* -- Counters -- */
+        QLabel* trigger_eventCounter_label = new QLabel("Trigger event count");
+        m_status_layout->addWidget(trigger_eventCounter_label, 0, 0);
+        m_trigger_eventCounter_label = new QLabel("0");
+        m_trigger_eventCounter_label->setAlignment(Qt::AlignCenter);
+        m_status_layout->addWidget(m_trigger_eventCounter_label, 0, 1);
         
-        m_tdc_fatal_label = new QLabel("TDC FATAL ERROR");
-        m_tdc_fatal_label->setStyleSheet("QLabel { font-weight: bold; background-color: red; }");
-        m_tdc_fatal_label->setAlignment(Qt::AlignCenter);
-        m_tdc_fatal_label->hide();
-        tdc_status_layout->addWidget(m_tdc_fatal_label);
-        
-        m_tdc_ok_label = new QLabel("TDC taking data");
-        m_tdc_ok_label->setStyleSheet("QLabel { font-weight: bold; background-color: green; }");
-        m_tdc_ok_label->setAlignment(Qt::AlignCenter);
-        m_tdc_ok_label->hide();
-        tdc_status_layout->addWidget(m_tdc_ok_label);
-        
-        m_tdc_eventCounter_label = new QLabel("TDC events recorded: 0");
+        QLabel* tdc_eventCounter_label = new QLabel("TDC events recorded");
+        m_status_layout->addWidget(tdc_eventCounter_label, 1, 0);
+        m_tdc_eventCounter_label = new QLabel("0");
         m_tdc_eventCounter_label->setAlignment(Qt::AlignCenter);
-        m_tdc_eventCounter_label->hide();
-        tdc_status_layout->addWidget(m_tdc_eventCounter_label);
+        m_status_layout->addWidget(m_tdc_eventCounter_label, 1, 1);
+        
+        QLabel* tdc_offset_label = new QLabel("TDC running offset");
+        m_status_layout->addWidget(tdc_offset_label, 2, 0);
+        m_tdc_offset_label = new QLabel("0");
+        m_tdc_offset_label->setAlignment(Qt::AlignCenter);
+        m_status_layout->addWidget(m_tdc_offset_label, 2, 1);
 
+        QLabel* tdc_FIFOEventCount_label = new QLabel("TDC events in FIFO");
+        m_status_layout->addWidget(tdc_FIFOEventCount_label, 3, 0);
+        m_tdc_FIFOEventCount_label = new QLabel("0");
+        m_tdc_FIFOEventCount_label->setAlignment(Qt::AlignCenter);
+        m_status_layout->addWidget(m_tdc_FIFOEventCount_label, 3, 1);
+        
+            /* -- TDC flags -- */
+            QHBoxLayout *tdc_flags_layout = new QHBoxLayout();
+            
+            m_tdc_backPressure_label = new QLabel("TDC BACKPRESSURE");
+            m_tdc_backPressure_label->setStyleSheet("QLabel { font-weight: bold; background-color: orange; }");
+            m_tdc_backPressure_label->setAlignment(Qt::AlignCenter);
+            m_tdc_backPressure_label->hide();
+            tdc_flags_layout->addWidget(m_tdc_backPressure_label);
+            
+            m_tdc_fatal_label = new QLabel("TDC FATAL ERROR");
+            m_tdc_fatal_label->setStyleSheet("QLabel { font-weight: bold; background-color: red; }");
+            m_tdc_fatal_label->setAlignment(Qt::AlignCenter);
+            m_tdc_fatal_label->hide();
+            tdc_flags_layout->addWidget(m_tdc_fatal_label);
+            
+            m_tdc_ok_label = new QLabel("TDC taking data");
+            m_tdc_ok_label->setStyleSheet("QLabel { font-weight: bold; background-color: green; }");
+            m_tdc_ok_label->setAlignment(Qt::AlignCenter);
+            m_tdc_ok_label->hide();
+            tdc_flags_layout->addWidget(m_tdc_ok_label);
+
+            m_status_layout->addLayout(tdc_flags_layout, 4, 0);
+       
+        /* -- Set layouts -- */
         tdc_ttc_layout->addLayout(triggerControl_layout);
-        tdc_ttc_layout->addLayout(tdc_status_layout);
+        tdc_ttc_layout->addLayout(m_status_layout);
         setLayout(tdc_ttc_layout);
 }
 
 void Trigger_TDC_Group::notifyUpdate() {
-    std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getTDCLock());
-    
-    if (m_interface.m_conditions->checkTDCBackPressure()) {
-        m_tdc_backPressure_label->show();
-        m_tdc_ok_label->hide();
-    } else {
-        m_tdc_backPressure_label->hide();
+    {
+        std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getTDCLock());
+        
+        if (m_interface.m_conditions->checkTDCBackPressure()) {
+            m_tdc_backPressure_label->show();
+            m_tdc_ok_label->hide();
+        } else {
+            m_tdc_backPressure_label->hide();
+        }
+        
+        if (m_interface.m_conditions->checkTDCFatalError()) {
+            m_tdc_fatal_label->show();
+            m_tdc_ok_label->hide();
+        } else {
+            m_tdc_fatal_label->hide();
+        }
+        
+        if (!m_interface.m_conditions->checkTDCFatalError() && !m_interface.m_conditions->checkTDCBackPressure()) {
+            m_tdc_ok_label->show();
+        }
+        
+        m_tdc_eventCounter_label->setText(QString::number(m_interface.m_conditions->getTDCEventCount()));
+        m_tdc_offset_label->setText(QString::number(m_interface.m_conditions->getTDCOffset()));
+        m_tdc_FIFOEventCount_label->setText(QString::number(m_interface.m_conditions->getTDCFIFOEventCount()));
     }
-    
-    if (m_interface.m_conditions->checkTDCFatalError()) {
-        m_tdc_fatal_label->show();
-        m_tdc_ok_label->hide();
-    } else {
-        m_tdc_fatal_label->hide();
+
+    {
+        std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getTTCLock());
+        m_trigger_eventCounter_label->setText(QString::number(m_interface.m_conditions->getTriggerEventNumber()));
     }
-    
-    if (!m_interface.m_conditions->checkTDCFatalError() && !m_interface.m_conditions->checkTDCBackPressure()) {
-        m_tdc_ok_label->show();
-    }
-    
-    m_tdc_eventCounter_label->setText("TDC events recorded: " + QString::number(m_interface.m_conditions->getTDCEventCount()));
 }
 
 void Trigger_TDC_Group::atConfigureRun() {
@@ -106,8 +144,6 @@ void Trigger_TDC_Group::atConfigureRun() {
         std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getTDCLock());
         m_interface.m_conditions->configureTDC();
     }
-    
-    m_tdc_eventCounter_label->show();
 }
 
 void Trigger_TDC_Group::atStartRun() {
@@ -143,9 +179,10 @@ void Trigger_TDC_Group::atStopRun() {
     m_triggerChannel_box->setDisabled(false);
     m_triggerRandom_box->setDisabled(false);
 
-    m_tdc_eventCounter_label->hide();
-    m_tdc_eventCounter_label->setText("TDC events recorded: 0");
-    m_tdc_backPressure_label->hide();
-    m_tdc_fatal_label->hide();
+    m_tdc_eventCounter_label->setText("0");
+    m_tdc_offset_label->setText("0");
+    m_tdc_FIFOEventCount_label->setText("0");
+    m_trigger_eventCounter_label->setText("0");
+
     m_tdc_ok_label->hide();
 }

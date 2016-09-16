@@ -14,7 +14,8 @@
 #include "Interface.h"
 #include "RealSetupManager.h"
 #include "FakeSetupManager.h"
-#include "VmeUsbBridge.h"
+#include "Utils.h"
+
 #include "Event.h"
 
 class Interface;
@@ -84,6 +85,7 @@ class ConditionManager {
         int getTriggerRandomFrequency() { return m_triggerRandomFrequency; }
         void startTrigger();
         void stopTrigger();
+        std::uint64_t getTriggerEventNumber();
 
         /*
          * Define/retrieve/propagate the Discriminator conditions
@@ -105,15 +107,16 @@ class ConditionManager {
          */
         void startTDCReading();
         void stopTDCReading();
-        
         /*
          * Configure the TDC
          */
         void configureTDC();
         std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
         std::int64_t getTDCEventCount() { return m_TDC_evtCounter; }
+        std::int64_t getTDCFIFOEventCount();
         bool checkTDCBackPressure() { return m_TDC_backPressuring; }
         bool checkTDCFatalError() { return m_TDC_fatal; }
+        std::size_t getTDCOffset() { return m_TDC_offsetMinimum(); }
 
     private:
 
@@ -155,6 +158,7 @@ class ConditionManager {
         int m_triggerRandomFrequency;
 
         std::vector<event> m_TDC_evtBuffer;
+        MovingMinimum<std::size_t> m_TDC_offsetMinimum;
         bool m_TDC_backPressuring;
         bool m_TDC_fatal;
         std::int64_t m_TDC_evtCounter;

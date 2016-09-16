@@ -1,7 +1,11 @@
 #pragma once
 
 #include <string>
+#include <limits>
 #include <ctime>
+#include <cstdint>
+#include <list>
+
 #include <json/json.h>
 
 /*
@@ -24,7 +28,7 @@ inline std::string timeToString(typename T::time_point m_time) {
 }
 
 template<typename T>
-uint64_t timeNowStamp(typename T::time_point m_time) {
+std::uint64_t timeNowStamp(typename T::time_point m_time) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(m_time.time_since_epoch()).count();
 }
 
@@ -33,3 +37,105 @@ Json::UInt64 timeToJson(typename T::time_point m_time) {
     return static_cast<Json::UInt64>(timeNowStamp<T>(m_time));
 }
 
+/*
+ * Class helping to compute a running average on a set of values
+ */
+
+template<typename T>
+class MovingAverage {
+    public:
+        MovingAverage(std::size_t size):
+            m_size(size),
+            m_avg_buffer(0),
+            m_need_update(false) 
+            {}
+
+        void add(T val) {
+            m_list.push_back(val);
+            if (m_list.size() > m_size)
+                m_list.pop_front();
+            m_need_update = true;
+        }
+
+        double operator()() {
+            if (!m_need_update)
+                return m_avg_buffer;
+            m_need_update = false;
+            double sum;
+            for (auto const& i: m_list)
+                sum += i;
+            m_avg_buffer = sum / m_list.size();
+            return m_avg_buffer;
+        }
+        
+        double operator()(T val) {
+            add(val);
+            return operator();
+        }
+
+        void setSize(std::size_t size) {
+            m_size = size;
+        }
+        
+        void clear() {
+            m_list.clear();
+            m_avg_buffer = 0;
+            m_need_update = false;
+        }
+
+    private:
+        std::list<T> m_list;
+        std::size_t m_size;
+        double m_avg_buffer;
+        bool m_need_update;
+};
+
+template<typename T>
+class MovingMinimum {
+    public:
+        MovingMinimum(std::size_t size):
+            m_size(size),
+            m_min_buffer(0),
+            m_need_update(false) 
+            {}
+
+        void add(T val) {
+            m_list.push_back(val);
+            if (m_list.size() > m_size)
+                m_list.pop_front();
+            m_need_update = true;
+        }
+
+        T operator()() {
+            if (!m_need_update)
+                return m_min_buffer;
+            T min = std::numeric_limits<T>::max();
+            for (auto const& i: m_list) {
+                if (i < min)
+                    min = i;
+            }
+            m_min_buffer = min;
+            return min;
+        }
+        
+        T operator()(T val) {
+            add(val);
+            return operator()();
+        }
+
+        void setSize(std::size_t size) {
+            m_size = size;
+        }
+        
+        void clear() {
+            m_list.clear();
+            m_min_buffer = std::numeric_limits<T>::min();
+            m_need_update = false;
+        }
+
+    private:
+        std::list<T> m_list;
+        std::size_t m_size;
+        T m_min_buffer;
+        bool m_need_update;
+};

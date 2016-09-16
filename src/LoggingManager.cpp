@@ -110,8 +110,11 @@ void LoggingManager::initContinuousLog() {
                 );
         }
 
-        m_timeSeries_TDC_eventBufferCounter = m_DB->addTimeSeries("TDC.nEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
+        m_timeSeries_TDC_interfaceEventBufferCounter = m_DB->addTimeSeries("TDC.nIntEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
+        m_timeSeries_TDC_FIFOEventBufferCounter = m_DB->addTimeSeries("TDC.nFIFOEvtBuffer", { { "run_number", std::to_string(m_run_number) } });
         m_timeSeries_TDC_eventCounter = m_DB->addTimeSeries("TDC.nEvt", { { "run_number", std::to_string(m_run_number) } });
+        m_timeSeries_TDC_offset = m_DB->addTimeSeries("TDC.offset", { { "run_number", std::to_string(m_run_number) } });
+        m_timeSeries_TTC_eventCounter = m_DB->addTimeSeries("TTC.nEvt", { { "run_number", std::to_string(m_run_number) } });
     }
 
     // Initialise the CSV file
@@ -123,6 +126,8 @@ void LoggingManager::initContinuousLog() {
         m_continuous_log->addField("hv_" + std::to_string(id) + "_readValue");
     }
     m_continuous_log->addField("tdc_nEvt");
+    m_continuous_log->addField("tdc_offset");
+    m_continuous_log->addField("ttc_nEvt");
     
     m_continuous_log->freeze();
 
@@ -133,11 +138,12 @@ void LoggingManager::initContinuousLog() {
     m_tree->Branch("Event", &m_tmp_event);
 }
     
-void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
+void LoggingManager::updateContinuousLog(m_clock::time_point log_time, bool last_time) {
     std::uint64_t time_now = timeNowStamp<m_clock>(log_time);
     
     m_continuous_log->setField("timestamp", time_now);
     
+    // Fill HV-related information
     for (std::size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
         std::lock_guard<std::mutex> hv_lock(m_conditions.getHVLock());
         
@@ -150,11 +156,11 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
         }
     }
 
+    // Fill TDC-related information
     {
         std::lock_guard<std::mutex> tdc_lock(m_conditions.getTDCLock());
 
-        // FIXME empty buffer at end of run
-        if (m_conditions.getTDCEventBuffer().size() >= m_TDC_eventBuffer_flushSize) {
+        if (m_conditions.getTDCEventBuffer().size() >= m_TDC_eventBuffer_flushSize || last_time) {
             for (const auto& e: m_conditions.getTDCEventBuffer()) {
                 m_tmp_event = e;
                 m_tree->Fill();
@@ -163,10 +169,26 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
         }
  
         m_continuous_log->setField("tdc_nEvt", m_conditions.getTDCEventCount());
+        m_continuous_log->setField("tdc_offset", m_conditions.getTDCOffset());
         
         if (m_DB.get()) {
-            m_DB->putValue(m_timeSeries_TDC_eventBufferCounter, m_conditions.getTDCEventBuffer().size(), time_now);
+            m_DB->putValue(m_timeSeries_TDC_interfaceEventBufferCounter, m_conditions.getTDCEventBuffer().size(), time_now);
+            m_DB->putValue(m_timeSeries_TDC_FIFOEventBufferCounter, m_conditions.getTDCFIFOEventCount(), time_now);
             m_DB->putValue(m_timeSeries_TDC_eventCounter, m_conditions.getTDCEventCount(), time_now);
+            m_DB->putValue(m_timeSeries_TDC_offset, m_conditions.getTDCOffset(), time_now);
+        }
+    }
+
+    // Fill Trigger-related information
+    {
+        std::lock_guard<std::mutex> tcc_lock(m_conditions.getTTCLock());
+        
+        std::uint64_t ttc_evt_count = m_conditions.getTriggerEventNumber();
+        
+        m_continuous_log->setField("ttc_nEvt", m_conditions.getTDCEventCount());
+        
+        if (m_DB.get()) {
+            m_DB->putValue(m_timeSeries_TTC_eventCounter, m_conditions.getTriggerEventNumber(), time_now);
         }
     }
  
@@ -175,7 +197,7 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
 
 void LoggingManager::finalizeContinuousLog() {
     // Update continuous log one last time
-    updateContinuousLog(m_clock::now());
+    updateContinuousLog(m_clock::now(), true);
     
     m_continuous_log.reset();
 

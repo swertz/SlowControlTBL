@@ -30,6 +30,7 @@ ConditionManager::ConditionManager(Interface& m_interface):
     m_channelsMajority(3),
     m_triggerChannel(1),
     m_triggerRandomFrequency(0),
+    m_TDC_offsetMinimum(5),
     m_TDC_backPressuring(false),
     m_TDC_fatal(false),
     m_TDC_evtCounter(0),
@@ -91,6 +92,10 @@ void ConditionManager::stopTrigger() {
     m_setup_manager->setTrigger(7, 0); // Channel 7 means disabled...
 }
 
+std::uint64_t ConditionManager::getTriggerEventNumber() {
+    return m_setup_manager->getTTCEventNumber();
+}
+
 void ConditionManager::startHVDaemon() {
     if (thread_handle_HV.joinable()) {
         throw daemon_state_error("HV daemon was already running");
@@ -141,18 +146,21 @@ void ConditionManager::stopTDCReading() {
 }
 
 void ConditionManager::configureTDC() {
+    m_TDC_offsetMinimum.clear();
+    m_TDC_evtCounter = 0;
+    m_TDC_evtBuffer.clear();
+    m_TDC_backPressuring = false;
+    m_TDC_fatal = false;
+    
     m_setup_manager->configureTDC();
 }
 
+std::int64_t ConditionManager::getTDCFIFOEventCount() {
+    return m_setup_manager->getTDCNEvents();
+}
+
 void ConditionManager::daemonTDC() {
-    {
-        std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
-        m_TDC_evtCounter = 0;
-        m_TDC_evtBuffer.clear();
-        m_TDC_backPressuring = false;
-        m_TDC_fatal = false;
-    }
-    
+
     while(m_TDC_daemon_running) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -167,7 +175,13 @@ void ConditionManager::daemonTDC() {
         bool lost_trigger = tdc::LostTrig(tdc_status);
         bool data_ready = tdc::DataReady(tdc_status);
 
-        if (almost_full || lost_trigger) {
+        if (lost_trigger) {
+            m_TDC_fatal = true;
+            std::cout << "TDC fatal error: lost triggers" << std::endl;
+            break;
+        }
+
+        if (almost_full) {
             
             // Something bad has happened or is about to happen -> backpressure the TTC
             std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
@@ -176,7 +190,6 @@ void ConditionManager::daemonTDC() {
         
         } else {
 
-            // FIXME??
             if (m_TDC_backPressuring) {
                 std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
                 startTrigger();
@@ -204,26 +217,30 @@ void ConditionManager::daemonTDC() {
                     std::cout << "TDC fatal error: event error code " << this_evt.errorCode << std::endl;
                     break;
                 }
+ 
+                // Check on the first event if TDC and TTC are in sync -> if not stop data taking!
+                if (i == 0) {
+                    std::int64_t evt_offset = 0;
+                    {
+                        std::lock_guard<std::mutex> m_ttc_lock(m_ttc_mtx);
+                        // TDC buffer is a FIFO -> add number of events still in buffer
+                        evt_offset = this_evt.eventNumber + m_setup_manager->getTDCNEvents() - m_setup_manager->getTTCEventNumber();
+                    }
+                    // Compute running minimum of offset over last X readings
+                    // If offset becomes too large, stop TDC data reading
+                    // Since the offset can only grow, using the running minimum is good enough
+                    evt_offset = m_TDC_offsetMinimum(std::abs(evt_offset));
+                    if (evt_offset > 3) {
+                        m_TDC_fatal = true;
+                        std::cout << "TDC fatal error: out of sync with TTC. Offset: " << evt_offset << std::endl;
+                        break;
+                    }
+                }
                 
-                // Check if TDC and TTC are in sync -> if not stop data taking!
-                // FIXME do every time??
-                std::int64_t evt_offset = 0;
-                {
-                    std::lock_guard<std::mutex> m_ttc_lock(m_ttc_mtx);
-                    // TDC buffer is a FIFO -> add number of events still in buffer
-                    evt_offset = this_evt.eventNumber + m_setup_manager->getTDCNEvents() - m_setup_manager->getTTCEventNumber();
-                    std::cout << "Offset: " << evt_offset << std::endl;
-                }
-                if (std::abs(evt_offset) > 3) {
-                    m_TDC_fatal = true;
-                    std::cout << "TDC fatal error: out of sync with TTC. Offset: " << evt_offset << std::endl;
-                    break;
-                }
                 m_TDC_evtBuffer.push_back(this_evt);
                 m_TDC_evtCounter++;
             }
         }
-
 
         if (m_TDC_fatal)
             break;

@@ -59,7 +59,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -67,8 +68,7 @@
               "refId": "C",
               "tags": {
                 "hv": "0"
-              },
-              "disableDownsampling": true
+              }
             },
             {
               "aggregator": "sum",
@@ -79,7 +79,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -87,8 +88,7 @@
               "refId": "A",
               "tags": {
                 "hv": "1"
-              },
-              "disableDownsampling": true
+              }
             },
             {
               "aggregator": "sum",
@@ -99,15 +99,15 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "filters": [],
               "metric": "HVPMT.read",
               "refId": "B",
               "tags": {
                 "hv": "2"
-              },
-              "disableDownsampling": true
+              }
             }
           ],
           "timeFrom": null,
@@ -180,7 +180,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "HV1",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -188,7 +188,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -196,11 +197,10 @@
               "refId": "C",
               "tags": {
                 "hv": "0"
-              },
-              "disableDownsampling": true
+              }
             },
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "HV2",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -208,7 +208,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -216,11 +217,10 @@
               "refId": "A",
               "tags": {
                 "hv": "1"
-              },
-              "disableDownsampling": true
+              }
             },
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "HV3",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -228,7 +228,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -236,8 +237,7 @@
               "refId": "B",
               "tags": {
                 "hv": "2"
-              },
-              "disableDownsampling": true
+              }
             }
           ],
           "timeFrom": null,
@@ -311,8 +311,8 @@
           "targets": [
             {
               "aggregator": "sum",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nEvt",
               "refId": "A"
@@ -389,16 +389,16 @@
           "targets": [
             {
               "aggregator": "sum",
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
-              "metric": "TDC.nEvtBuffer",
-              "refId": "A",
-              "disableDownsampling": true
+              "metric": "TDC.nFIFOEvtBuffer",
+              "refId": "A"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "TDC event buffer (interface)",
+          "title": "TDC events in FIFO",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -430,10 +430,175 @@
         }
       ],
       "title": "Row"
+    },
+    {
+      "title": "New row",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "panels": [
+        {
+          "title": "TDC interface buffer",
+          "error": false,
+          "span": 5,
+          "editable": true,
+          "type": "graph",
+          "isNew": true,
+          "id": 6,
+          "targets": [
+            {
+              "refId": "A",
+              "aggregator": "sum",
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "metric": "TDC.nIntEvtBuffer",
+              "disableDownsampling": false,
+              "shouldComputeRate": false
+            }
+          ],
+          "datasource": "SlowControlTSDB",
+          "renderer": "flot",
+          "yaxes": [
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            },
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            }
+          ],
+          "xaxis": {
+            "show": true
+          },
+          "grid": {
+            "threshold1": null,
+            "threshold2": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "lines": true,
+          "fill": 1,
+          "linewidth": 2,
+          "points": false,
+          "pointradius": 5,
+          "bars": false,
+          "stack": false,
+          "percentage": false,
+          "legend": {
+            "show": true,
+            "values": false,
+            "min": false,
+            "max": false,
+            "current": false,
+            "total": false,
+            "avg": false
+          },
+          "nullPointMode": "connected",
+          "steppedLine": false,
+          "tooltip": {
+            "value_type": "cumulative",
+            "shared": true,
+            "sort": 0,
+            "msResolution": true
+          },
+          "timeFrom": null,
+          "timeShift": null,
+          "aliasColors": {},
+          "seriesOverrides": [],
+          "links": []
+        },
+        {
+          "title": "Trigger event counter",
+          "error": false,
+          "span": 5,
+          "editable": true,
+          "type": "graph",
+          "isNew": true,
+          "id": 7,
+          "targets": [
+            {
+              "refId": "A",
+              "aggregator": "sum",
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "metric": "TTC.nEvt",
+              "disableDownsampling": false
+            }
+          ],
+          "datasource": "SlowControlTSDB",
+          "renderer": "flot",
+          "yaxes": [
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            },
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            }
+          ],
+          "xaxis": {
+            "show": true
+          },
+          "grid": {
+            "threshold1": null,
+            "threshold2": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "lines": true,
+          "fill": 1,
+          "linewidth": 2,
+          "points": false,
+          "pointradius": 5,
+          "bars": false,
+          "stack": false,
+          "percentage": false,
+          "legend": {
+            "show": true,
+            "values": false,
+            "min": false,
+            "max": false,
+            "current": false,
+            "total": false,
+            "avg": false
+          },
+          "nullPointMode": "connected",
+          "steppedLine": false,
+          "tooltip": {
+            "value_type": "cumulative",
+            "shared": true,
+            "sort": 0,
+            "msResolution": true
+          },
+          "timeFrom": null,
+          "timeShift": null,
+          "aliasColors": {},
+          "seriesOverrides": [],
+          "links": []
+        }
+      ]
     }
   ],
   "time": {
-    "from": "now-1h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -468,9 +633,9 @@
   "annotations": {
     "list": []
   },
-  "refresh": false,
+  "refresh": "1s",
   "schemaVersion": 12,
-  "version": 2,
+  "version": 4,
   "links": [],
   "gnetId": null
 }

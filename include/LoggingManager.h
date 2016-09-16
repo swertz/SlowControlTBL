@@ -135,7 +135,7 @@ class LoggingManager {
        * Update CSV logging with new values
        * LOCKS: HV, TDC
        */
-      void updateContinuousLog(m_clock::time_point log_time);
+      void updateContinuousLog(m_clock::time_point log_time, bool last_time = false);
       void finalizeContinuousLog();
 
       Interface& m_interface;
@@ -149,8 +149,11 @@ class LoggingManager {
       std::shared_ptr<OpenTSDBInterface> m_DB;
       std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_setVal;
       std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_readVal;
-      std::shared_ptr<TimeSeries> m_timeSeries_TDC_eventBufferCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_interfaceEventBufferCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_FIFOEventBufferCounter;
       std::shared_ptr<TimeSeries> m_timeSeries_TDC_eventCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_offset;
+      std::shared_ptr<TimeSeries> m_timeSeries_TTC_eventCounter;
 
       Json::Value m_condition_json_root;
       Json::Value m_condition_json_list;
