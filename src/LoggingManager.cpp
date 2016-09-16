@@ -152,7 +152,8 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time) {
 
     {
         std::lock_guard<std::mutex> tdc_lock(m_conditions.getTDCLock());
-            
+
+        // FIXME empty buffer at end of run
         if (m_conditions.getTDCEventBuffer().size() >= m_TDC_eventBuffer_flushSize) {
             for (const auto& e: m_conditions.getTDCEventBuffer()) {
                 m_tmp_event = e;

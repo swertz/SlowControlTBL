@@ -115,7 +115,10 @@ event RealSetupManager::getTDCEvent() {
 }
 
 void RealSetupManager::configureTDC() {
-
+    // Empty TDC buffer
+    for (std::size_t i = 0; i < m_TDC.GetNumberOfEvents(); i++) {
+        m_TDC.GetEvent();
+    }
 }
 
 //std::vector<double> RealSetupManager::getHVPMTState() {

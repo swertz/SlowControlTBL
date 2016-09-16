@@ -59,7 +59,7 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "avg",
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -67,7 +67,8 @@
               "refId": "C",
               "tags": {
                 "hv": "0"
-              }
+              },
+              "disableDownsampling": true
             },
             {
               "aggregator": "sum",
@@ -78,7 +79,7 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "avg",
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -86,7 +87,8 @@
               "refId": "A",
               "tags": {
                 "hv": "1"
-              }
+              },
+              "disableDownsampling": true
             },
             {
               "aggregator": "sum",
@@ -97,14 +99,15 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "downsampleAggregator": "avg",
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "filters": [],
               "metric": "HVPMT.read",
               "refId": "B",
               "tags": {
                 "hv": "2"
-              }
+              },
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -177,7 +180,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV1",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -193,10 +196,11 @@
               "refId": "C",
               "tags": {
                 "hv": "0"
-              }
+              },
+              "disableDownsampling": true
             },
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV2",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -212,10 +216,11 @@
               "refId": "A",
               "tags": {
                 "hv": "1"
-              }
+              },
+              "disableDownsampling": true
             },
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV3",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -231,7 +236,8 @@
               "refId": "B",
               "tags": {
                 "hv": "2"
-              }
+              },
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -305,11 +311,11 @@
           "targets": [
             {
               "aggregator": "sum",
-              "downsampleAggregator": "avg",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nEvt",
-              "refId": "A",
-              "disableDownsampling": false
+              "refId": "A"
             }
           ],
           "timeFrom": null,
@@ -383,10 +389,11 @@
           "targets": [
             {
               "aggregator": "sum",
-              "downsampleAggregator": "avg",
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nEvtBuffer",
-              "refId": "A"
+              "refId": "A",
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -426,7 +433,7 @@
     }
   ],
   "time": {
-    "from": "now-15m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -461,9 +468,9 @@
   "annotations": {
     "list": []
   },
-  "refresh": "1s",
+  "refresh": false,
   "schemaVersion": 12,
-  "version": 16,
+  "version": 2,
   "links": [],
   "gnetId": null
 }

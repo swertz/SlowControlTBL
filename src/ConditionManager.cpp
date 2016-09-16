@@ -212,8 +212,9 @@ void ConditionManager::daemonTDC() {
                     std::lock_guard<std::mutex> m_ttc_lock(m_ttc_mtx);
                     // TDC buffer is a FIFO -> add number of events still in buffer
                     evt_offset = this_evt.eventNumber + m_setup_manager->getTDCNEvents() - m_setup_manager->getTTCEventNumber();
+                    std::cout << "Offset: " << evt_offset << std::endl;
                 }
-                if (std::abs(evt_offset) > 1) {
+                if (std::abs(evt_offset) > 3) {
                     m_TDC_fatal = true;
                     std::cout << "TDC fatal error: out of sync with TTC. Offset: " << evt_offset << std::endl;
                     break;
