@@ -16,6 +16,7 @@ class SetupManager {
         virtual std::vector< std::pair<double, double> > getHVPMTValue() = 0;
 
         virtual void setTrigger(int channel, int randomFrequency) = 0;
+        virtual void resetTrigger() = 0;
         virtual std::int64_t getTTCEventNumber() = 0;
 
         virtual bool propagateDiscriSettings() = 0;

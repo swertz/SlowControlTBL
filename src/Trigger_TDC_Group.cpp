@@ -138,6 +138,7 @@ void Trigger_TDC_Group::atConfigureRun() {
         std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getTTCLock());
         m_interface.m_conditions->setTriggerChannel(m_triggerChannel_box->value());
         m_interface.m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
+        m_interface.m_conditions->resetTrigger();
     }
 
     {

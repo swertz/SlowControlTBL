@@ -68,14 +68,12 @@ bool RealSetupManager::propagateDiscriSettings() {
         succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setChannel(dc_id, m_interface.getConditions().getDiscriChannelState(dc_id))) == 1));
         succeeded_discriSettings = (succeeded_discriSettings && (m_discri.setTh(m_interface.getConditions().getDiscriChannelThreshold(dc_id), dc_id) == 1));
         succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setWidth(m_interface.getConditions().getDiscriChannelWidth(dc_id), dc_id)) == 1));
-        succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setWidth(m_interface.getConditions().getDiscriChannelWidth(dc_id), dc_id)) == 1));
 
     }
     return succeeded_majority && succeeded_discriSettings;
 }
 
 void RealSetupManager::setTrigger(int channel, int randomFrequency) {
-    m_TTC.resetCounter();
     if (channel == 7) {
         std::cout << "Disabling trigger..." << std::endl;
         m_TTC.changeChannel(channel);
@@ -88,6 +86,10 @@ void RealSetupManager::setTrigger(int channel, int randomFrequency) {
         m_TTC.changeRandomFrequency(randomFrequency);
     }
     m_TTC.changeChannel(channel);
+}
+
+void RealSetupManager::resetTrigger() {
+    m_TTC.resetCounter();
 }
         
 std::int64_t RealSetupManager::getTTCEventNumber() {

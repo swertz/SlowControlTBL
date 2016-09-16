@@ -166,12 +166,17 @@ void Interface::configureRun() {
     m_stopBtn->setDisabled(false);
     m_configureBtn->setDisabled(true);
 
-    m_logging_manager = std::make_shared<LoggingManager>(*this, run_number);
-    
     m_runNumberSpin->hide();
     m_runNumberLabel->setText(QString::number(run_number));
     m_runNumberLabel->show();
+    
+    {
+        std::lock_guard<std::mutex> m_lock(m_conditions->getDiscriLock());
+        m_conditions->propagateDiscriSettings();
+    }
 
+    m_logging_manager = std::make_shared<LoggingManager>(*this, run_number);
+    
     m_ttc_tdc_group->atConfigureRun();
 
     m_state = State::configured;

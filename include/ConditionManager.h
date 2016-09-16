@@ -85,6 +85,7 @@ class ConditionManager {
         int getTriggerRandomFrequency() { return m_triggerRandomFrequency; }
         void startTrigger();
         void stopTrigger();
+        void resetTrigger();
         std::uint64_t getTriggerEventNumber();
 
         /*
@@ -159,8 +160,8 @@ class ConditionManager {
 
         std::vector<event> m_TDC_evtBuffer;
         MovingMinimum<std::size_t> m_TDC_offsetMinimum;
-        bool m_TDC_backPressuring;
-        bool m_TDC_fatal;
+        std::atomic<bool> m_TDC_backPressuring;
+        std::atomic<bool> m_TDC_fatal;
         std::int64_t m_TDC_evtCounter;
         std::size_t m_TDC_evtBuffer_flushSize;
         

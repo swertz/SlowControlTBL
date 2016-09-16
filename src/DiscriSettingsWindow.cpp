@@ -54,11 +54,12 @@ DiscriSettingsWindow::DiscriSettingsWindow(Interface& m_interface):
             discri_boxLayout->addWidget(discriChannel.included, vPos_channel, hPos_include);
 
             discriChannel.threshold = new QSpinBox();
+            discriChannel.threshold->setMaximum(255);
             discriChannel.threshold->setValue(m_interface.m_conditions->getDiscriChannelThreshold(dc_id));
             discri_boxLayout->addWidget(discriChannel.threshold, vPos_channel, hPos_threshold);
 
             discriChannel.width = new QSpinBox();
-            discriChannel.width->setMaximum(200);
+            discriChannel.width->setMaximum(255);
             discriChannel.width->setValue(m_interface.m_conditions->getDiscriChannelWidth(dc_id));
             discri_boxLayout->addWidget(discriChannel.width, vPos_channel, hPos_width);
             m_discriChannels.push_back(discriChannel);

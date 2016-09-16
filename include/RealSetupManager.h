@@ -33,6 +33,7 @@ class RealSetupManager: public SetupManager {
 
         // Trigger control : channel 1 --> physics trigger, channel 5 --> random triggers
         virtual void setTrigger(int channel, int randomFrequency) override;
+        virtual void resetTrigger() override;
         virtual std::int64_t getTTCEventNumber() override;
         
         // Discriminator/coincidence manager

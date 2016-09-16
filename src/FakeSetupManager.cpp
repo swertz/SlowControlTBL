@@ -29,7 +29,9 @@ std::vector< std::pair<double, double> > FakeSetupManager::getHVPMTValue() {
 }
 
 void FakeSetupManager::setTrigger(int channel, int frequency) {
-    return;
+}
+
+void FakeSetupManager::resetTrigger() {
 }
 
 std::int64_t FakeSetupManager::getTTCEventNumber() {

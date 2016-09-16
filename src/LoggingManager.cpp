@@ -185,10 +185,10 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time, bool last
         
         std::uint64_t ttc_evt_count = m_conditions.getTriggerEventNumber();
         
-        m_continuous_log->setField("ttc_nEvt", m_conditions.getTDCEventCount());
+        m_continuous_log->setField("ttc_nEvt", ttc_evt_count);
         
         if (m_DB.get()) {
-            m_DB->putValue(m_timeSeries_TTC_eventCounter, m_conditions.getTriggerEventNumber(), time_now);
+            m_DB->putValue(m_timeSeries_TTC_eventCounter, ttc_evt_count, time_now);
         }
     }
  

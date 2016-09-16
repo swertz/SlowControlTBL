@@ -3,6 +3,7 @@
 discri::discri(vmeController *controller,int add):vmeBoard(controller,A32_U_DATA,D16){
   this->add=add;
   this->status=0x0000;//All channels off
+  this->setMultiChannel(0);
   int DATA;
   if(readData(add+0xFE,&DATA)!=0){
     if (vLevel(ERROR))cerr<<"** ERROR, unable to connect to Discriminator at add="<<add<<endl;
@@ -25,6 +26,7 @@ int discri::setChannel(int num, bool newState){
   int DATA=status;
   if(TestError(writeData(this->add+0x4A,&DATA),"Discri: Changing channel status")){
     if (vLevel(NORMAL))cout<<"New status for channel "<<num<<": "<<(this->status%(int)pow(2,num+1))/pow(2,num)<<endl;
+    cout<<"DEBUG..."<<num<<"-"<<this->status<<"-"<<(this->status%(int)pow(2,num+1))/pow(2,num)<<endl;
     return(1);
   }
   else return(-1);

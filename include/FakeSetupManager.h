@@ -23,6 +23,7 @@ class FakeSetupManager: public SetupManager {
         virtual std::vector< std::pair<double, double> > getHVPMTValue() override;
 
         virtual void setTrigger(int channel, int randomFrequency) override;
+        virtual void resetTrigger() override;
         // Return 10 (same as getTDCNEvents() to stay "in sync")
         virtual std::int64_t getTTCEventNumber() override;
 

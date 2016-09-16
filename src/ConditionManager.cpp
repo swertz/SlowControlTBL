@@ -92,6 +92,10 @@ void ConditionManager::stopTrigger() {
     m_setup_manager->setTrigger(7, 0); // Channel 7 means disabled...
 }
 
+void ConditionManager::resetTrigger() {
+    m_setup_manager->resetTrigger();
+}
+
 std::uint64_t ConditionManager::getTriggerEventNumber() {
     return m_setup_manager->getTTCEventNumber();
 }
@@ -156,13 +160,17 @@ void ConditionManager::configureTDC() {
 }
 
 std::int64_t ConditionManager::getTDCFIFOEventCount() {
-    return m_setup_manager->getTDCNEvents();
+    std::int64_t n_evt = m_setup_manager->getTDCNEvents();
+    unsigned int tdc_status = m_setup_manager->getTDCStatus();
+    bool data_ready = tdc::DataReady(tdc_status);
+    
+    return (data_ready && n_evt == 0) ? 1000 : n_evt; 
 }
 
 void ConditionManager::daemonTDC() {
 
     while(m_TDC_daemon_running) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         event m_evt; 
 
@@ -199,16 +207,27 @@ void ConditionManager::daemonTDC() {
         }
 
         if (data_ready) {
-            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
             
-            std::size_t n_evt = m_setup_manager->getTDCNEvents();
+            std::size_t n_evt = 0;
+            
+            {
+                std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+                n_evt = m_setup_manager->getTDCNEvents();
+            }
+            if (n_evt < m_TDC_evtBuffer_flushSize / 2) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
+            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+            n_evt = m_setup_manager->getTDCNEvents();
  
             // n_evt = 0 can happen if actual number of events between 1000 and 1024
             // Also, read at most m_TDC_evtBuffer_flushSize events at once
             if (n_evt > m_TDC_evtBuffer_flushSize || n_evt == 0)
                 n_evt = m_TDC_evtBuffer_flushSize;
-
+            
             for (std::size_t i = 0; i < n_evt; i++) {
+                
                 event this_evt = m_setup_manager->getTDCEvent();
 
                 // Data is corrupt -> stop saving it!
