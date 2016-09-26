@@ -172,8 +172,6 @@ void ConditionManager::daemonTDC() {
     while(m_TDC_daemon_running) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-        event m_evt; 
-
         unsigned int tdc_status;
         {
             std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
@@ -190,7 +188,7 @@ void ConditionManager::daemonTDC() {
         }
 
         if (almost_full) {
-            
+ 
             // Something bad has happened or is about to happen -> backpressure the TTC
             std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
             stopTrigger();
@@ -209,17 +207,19 @@ void ConditionManager::daemonTDC() {
         if (data_ready) {
             
             std::size_t n_evt = 0;
-            
+ 
+            // First check if the number of events is high enough that it's worth
+            // it to start an acquisition loop
             {
                 std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
                 n_evt = m_setup_manager->getTDCNEvents();
             }
             if (n_evt < m_TDC_evtBuffer_flushSize / 2) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                continue;
             }
 
             std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
-            n_evt = m_setup_manager->getTDCNEvents();
  
             // n_evt = 0 can happen if actual number of events between 1000 and 1024
             // Also, read at most m_TDC_evtBuffer_flushSize events at once
