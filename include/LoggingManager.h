@@ -7,8 +7,13 @@
 #include <map>
 #include <algorithm>
 #include <sstream>
+#include <cstdint>
+#include <cstddef>
 
 #include <json/value.h>
+
+#include <TTree.h>
+#include <TFile.h>
 
 #include "ConditionManager.h"
 #include "PythonDB.h"
@@ -102,19 +107,23 @@ class LoggingManager {
       
       using m_clock = std::chrono::system_clock;
 
-      LoggingManager(Interface& m_interface, uint32_t run_number, uint32_t m_continuous_log_time = 1000);
-      ~LoggingManager() {};
+      LoggingManager(Interface& m_interface, std::uint32_t run_number, std::uint32_t m_continuous_log_time = 1000);
+      ~LoggingManager();
 
       void run();
       void stop();
       
-      // Public: if interface changes something during a run, we have to update
+      /*
+       * Update JSON logging with new values
+       * Public: if interface changes something during a run, we have to update
+       * LOCKS: HV, TDC
+       */
       void updateConditionManagerLog(bool first_time = false, m_clock::time_point log_time = m_clock::now());
 
       /* Static: to check if creating a LoggingManager with a certain run number would overwrite existing log files
        * Return: true if log files already exist
        */
-      static bool checkRunNumber(uint32_t number);
+      static bool checkRunNumber(std::uint32_t number);
   
   private:
         
@@ -122,22 +131,36 @@ class LoggingManager {
       void finalizeConditionManagerLog();
       
       void initContinuousLog();
-      void updateContinuousLog(m_clock::time_point log_time);
+      /*
+       * Update CSV logging with new values
+       * LOCKS: HV, TDC
+       */
+      void updateContinuousLog(m_clock::time_point log_time, bool last_time = false);
       void finalizeContinuousLog();
 
       Interface& m_interface;
       ConditionManager& m_conditions;
       std::atomic<bool> is_running;
 
-      uint32_t m_continuous_log_time;
-      uint32_t m_run_number;
+      std::uint32_t m_continuous_log_time;
+      std::uint32_t m_run_number;
       std::shared_ptr<CSV> m_continuous_log;
 
       std::shared_ptr<OpenTSDBInterface> m_DB;
       std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_setVal;
       std::vector<std::shared_ptr<TimeSeries>> m_timeSeries_HVPMT_readVal;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_interfaceEventBufferCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_FIFOEventBufferCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_eventCounter;
+      std::shared_ptr<TimeSeries> m_timeSeries_TDC_offset;
+      std::shared_ptr<TimeSeries> m_timeSeries_TTC_eventCounter;
 
       Json::Value m_condition_json_root;
       Json::Value m_condition_json_list;
+
+      TFile *m_root_file;
+      TTree *m_tree;
+      event m_tmp_event;
+      std::size_t m_TDC_eventBuffer_flushSize;
 };
  

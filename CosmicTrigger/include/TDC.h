@@ -5,7 +5,8 @@
 #include "Event.h"
 #include <vector>
 #include <sstream>
-using namespace std;
+#include <stdint.h>
+
 /**
  * \brief
  *  This class has a few functions encoding the basic functionalities of the TDC.
@@ -29,73 +30,127 @@ public:
   * If address not given, will assume it's 0x00120000.
   */
 
-  //FUNCTIONS
-  int getEvent(event &myEvent);
+  //FUNCTIONS -- GENERAL
+  
+  void reset();
   /**<
-   * \brief gets data from TDC
-   * 
-   * -Waits for "event ready" status from TDC
-   * 
-   * -Writes the event in myEvent
-   * 
-   * This function needs to have FIFO enabled (cf 'enableFIFO()' ). 
-   * 
-   * It has only been tested in trigger mode.
-   */
-  void coutEvent(event myEvent);
-  /**
-   * \brief desribes explicitely the content of myEvent in the standard output stream
-   */
-  void ReadStatus();
-  /**
-   * \brief describes the status of the TDC in the stantdard output stream.
-   * 
-   * the status includes :
-   * 
-   * -Event ready/Data not ready
-   * 
-   * -Output buffer is (not) full
-   * 
-   * -Operating mode :trigger/continuous
-   * */
-  void Reset();
-  /**
    * \brief resets the board.
    */
-  void setMode(bool Trig = 1);
-  /**
+
+  void writeOpcode(unsigned int &data);
+  /**<
+   * \brief writes a command line of 16 bit in the Micro Controller register.
+   * 
+   * This command includes a wait time for micro controllers 'writing ready' bit.
+   */
+
+  void readOpcode(unsigned int &data);
+  /**<
+   * \brief reads a 16 bit word in the Micro Controller register.
+   * 
+   * This command includes a wait time for micro controllers 'read ready' bit.
+   */
+  unsigned int getStatusWord ();
+  /**<
+   * \brief Returns the status word of the TDC card.
+   */
+  static bool dataReady(unsigned int status);
+  /**<
+   * \brief Returns if data ready in FIFO.
+   * \param status is the status word of the TDC.
+   */
+  static bool isAlmostFull(unsigned int status);
+  /**<
+   * \brief Returns if buffer is almost full.
+   * \param status is the status word of the TDC.
+   */
+  static bool isFull(unsigned int status);
+  /**<
+   * \brief Returns if buffer is full.
+   * \param status is the status word of the TDC.
+   */
+  static bool lostTrig(unsigned int status);
+  /**< \brief Returns if a trigger was lost
+   *  \param status is the status word of the TDC.
+   */
+  static int  inError(unsigned int status);
+  /**<
+   * \brief Returns TDC status. One bit per TDC (4bits in total).
+   * \param status is the status word of the TDC.
+   */
+
+  
+  //FUNCTIONS -- DAQ
+  int getNumberOfEvents();
+  /**<
+   * \brief Returns number of events currently in FIFO
+   */
+  int getNumberOfWords();
+  /**<
+   * \brief Returns number of words of event in FIFO
+   */
+  event getEvent();
+  /**<
+   * \brief Reads an event from the FIFO
+   */
+  std::vector <event> readFIFO();
+  /**<
+   * \brief Returns all events in the FIFO
+   */
+
+  //FUNCTIONS -- CONFIG
+  void setAcqMode(bool Trig = 1);
+  /**<
    * \brief set the acquisition mode : Trigger (1), Continuous (0).
    */
-  void setMaxEvPerHit(int Max_ev_per_hit =256 );
-  /**
-   * \brief sets the maximum number of hits the TDC should memorise in a window
-   * 
-   * Possible values are : 
-   * 
-   * -0,1,2,4,8,16,32,64,128 
-   * 
-   * -256 for no limit
-   * 
-   * the TDC sends an errorcode if the number is exceeded, but 'getEvent()' doesn't take account of it.
-   * */
+  bool getAcqMode();
+  /**<
+   *\brief Gets the acquisition mode. Trigger (1), Continuous(0);
+   */
+
+  void loadDefaultConfig();
+  /**<
+   * \brief Loads the default configuration
+   */
+  
+  void saveUserConfig();
+  /**<
+   * \brief Saves user config to board
+   */
+
+  void loadUserConfig();
+  /**<
+   * \brief Loads user config from board
+   */
+
+  void setAutoLoadUserConfig();
+  /**<
+   * \brief Automatically load saved config from board
+   */
+  
+
   void setWindowWidth(unsigned int WidthSetting);
-  /**
+  /**<
    * \brief sets the window width in multiples of clockcycle.
    */
+  
   void setWindowOffset(int OffsetSetting);
-  /**
+  /**<
    * \brief sets the difference between the beginning of the window and the external trigger in multiples of clockcycle.
    */
+
   void setExSearchMargin(int ExSearchMrgnSetting );
-  /**
+  /**<
    * \brief sets the extra search margin in units of clock cycle.
    */
+
   void setRejectMargin(int RejectMrgnSetting);
-  /**
+  /**<
    * \brief sets the reject margin in units of clock cycle.
    */
-  void readWindowConfiguration();
-  /**
+
+  void printTriggerConfiguration();
+  /**<
    * \brief descibes the current match window settings in the standard output stream.
    * 
    * includes :
@@ -110,116 +165,103 @@ public:
    * 
    * -Trigger time substraction
    */
-  void readResolution();
-  /**
-   * \brief writes the resolution in the standard output stream
-   * 
-   * 0 -> 800ps
-   * 
-   * 1 -> 200ps
-   * 
-   * 2 -> 100ps
-   * 
-   * works only in leading/trailing edge detection mode
+  std::vector <unsigned int > getTriggerConfiguration();
+  /**<
+   * \brief Returns a vector containing the current trigger configuration.
+   * Values are :
+   * match window width, window offset, extra search window width, reject margin and trigger time substraction
+   */
+
+  void setEdgeDetection(int mode);
+  /**<
+   * \brief Sets the edge detection configuration
+   *
+   * \param mode can be pair (0), trailing (1), leading (2) and both (3)
    */
   
-  void setChannelNumbers(int clock, int trigger);
-  /**
-   * \brief sets the channel number of the clock and the trigger.
-   * 
-   * This channel numbers are needed for 'analyseEvent()'
+  int getEdgeDetection();
+  /**<
+   * \brief Gets the edge detection configuration
+   *
+   * \return pair(0), trailing(1), leading(2) or both(3)
    */
-  
+  void setEdgeResolution(int res);
+  /**<
+   * \brief Sets edge resolution (not for pair mode)
+   *
+   * \param resolution : 800ps (0), 200ps (1) or 100ps(2)
+   */
+
+  int getEdgeResolution();
+  /**<
+   * \brief Gets the edge resolution
+   *
+   * Works only in leading/trailing edge detection mode
+   *
+   * \return returns resolution : 800ps(0), 200ps(1) or 100ps(2).
+   */
+    
+  void setDeadTime(int deadTime);
+  /**<
+   * \brief Sets the dead time in all channels
+   *
+   * \param dead time = 5ns(0), 10ns(1), 30ns(2) or 100ns(3)
+  */
+
+  int getDeadTime();
+  /**<
+   * \brief Reads the dead time
+   *
+   * \return dead time : 5ns(0), 10ns(1), 30ns(2) or 100ns(3)
+   */
+
+  void setMaxEventsPerHit(int N = 9 );
+  /**<
+   * \brief sets the maximum number of hits the TDC should memorise in a window
+   * 
+   * Max number of events will be 2**(N-1) if N>0 and N<9
+   * 
+   * If N == 0, max = 0 and if N == 9, no maximum will be set.
+   * 
+   */
+
+  int getMaxEventsPerHit();
+  /**<
+   * \brief Gets the max number of hits per event
+   *
+   * \return N such that Max = 2**(N-1) if N in [1,8], 0 if max = 0 and 9 if no max is set.
+   */
+
   void enableFIFO();
-  /**
+  /**<
    * \brief enables FIFO.
    * 
    * This in necessary for 'getEvent()'
    */
   
   void disableTDCHeaderAndTrailer();
-  /**
+  /**<
    * \brief disables extra information send from the TDC. 
    * 
    * This information is neglected by 'getEvent()'.
    */
-
-  void writeDeadTime(int deadTime);
-  /**
-   * \brief Sets the dead time in all channels
+  
+  void setStatusAllChannels(bool status);
+  /**<
+   * \brief Enables/Disables all channels
    */
 
-  void readDeadTime();
-  /**
-   * \brief Reads the dead time in all channels
+  void setStatusChannel(int channel, bool status);
+  /**<
+   * \brief Set status for individual channel
    */
-
-  void setDetectConf(int mode);
-
-  void getDetectConf();
     
-  void SetAlmostFull(int nMax);
-  /**
+  void setAlmostFull(int nMax);
+  /**<
    * \brief Set almost full level
    */
 
-  void writeOpcode(unsigned int &data);
-  /**
-   * \brief writes a command line of 16 bit in the Micro Controller register.
-   * 
-   * This command includes a wait time for micro controllers 'writing ready' bit.
-   */
-  void readOpcode(unsigned int &data);
-  /**
-   * \brief reads a 16 bit word in the Micro Controller register.
-   * 
-   * This command includes a wait time for micro controllers 'read ready' bit.
-   */
 
-  unsigned int GetStatusWord ();
-  /**
-   * \brief Returns the status word of the TDC card.
-   */
-  bool DataReady(unsigned int status = 4);
-  /**
-   * \brief Returns if data ready in FIFO.
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
-   */
-  bool IsAlmostFull(unsigned int status = 4);
-  /**
-   * \brief Returns if buffer is almost full.
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
-   */
-  bool IsFull(unsigned int status = 4);
-  /**
-   * \brief Returns if buffer is full.
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
-   */
-  bool LostTrig(unsigned int status = 4);
-  /** \brief Returns if a trigger was lost
-   *  \param status is the status word of the TDC. If none is given, will read from TDC.
-   */
-  int  InError(unsigned int status = 4);
-  /**
-   * \brief Returns TDC status. One bit per TDC (4bits in total).
-   * \param status is the status word of the TDC. If none is given, will read from TDC.
-   */
-  int GetNumberOfEvents();
-  /**
-   * \brief Returns number of events currently in FIFO
-   */
-  int GetNumberOfWords();
-  /**
-   * \brief Returns number of words of event in FIFO
-   */
-  vector <event> ReadFIFO();
-  /**
-   * \brief Returns all events in the FIFO
-   */
-  event GetEvent();
-  /**
-   * \brief Reads an event from the FIFO
-   */
 
 private:
 
@@ -232,11 +274,6 @@ private:
   int OutputBuffer;
   int EventFIFO;
   int ControlRegister;
-
-  //INTERNAL VARIABLES
-  unsigned int ClockChannelNumber;
-  unsigned int TriggerChannelNumber;
-
 
   //PRIVATE FUNCTIONS
   int waitWrite(void);

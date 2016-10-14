@@ -8,50 +8,63 @@
 #include "Interface.h"
 
 #include "VmeUsbBridge.h"
-#include "HV.h"
+#include "Event.h"
 
-// Static
-const std::vector< std::pair<ConditionManager::State, ConditionManager::State> > ConditionManager::m_transitions = {
-    { ConditionManager::State::idle, ConditionManager::State::configured },
-    { ConditionManager::State::configured, ConditionManager::State::running },
-    { ConditionManager::State::running, ConditionManager::State::idle },
-    { ConditionManager::State::configured, ConditionManager::State::idle }
-};
+ConditionManager::ConditionManager(Interface& m_interface):
+    m_interface(m_interface),
+    m_HV_daemon_running(false),
+    m_TDC_daemon_running(false),
+    m_hvpmt({
+            { 1025, 0, 0, true },
+            { 925, 0, 0, true },
+            { 1225, 0, 0, true },
+            { 0, 0, 0, false }
+            }),
+    m_discriChannels({
+            { true, 5, 200 },
+            { true, 5, 200 },
+            { true, 5, 200 },
+            { false, 5, 200 },
+            { false, 5, 200 }
+            }),
+    m_channelsMajority(3),
+    m_triggerChannel(1),
+    m_triggerRandomFrequency(0),
+    m_TDC_offsetMinimum(5),
+    m_TDC_backPressuring(false),
+    m_TDC_fatal(false),
+    m_TDC_evtCounter(0),
+    m_TDC_evtBuffer_flushSize(50)
+{
+    // No reliable way of knowing how many events we have
+    // in the TDC buffer if there are more than 1000
+    if (m_TDC_evtBuffer_flushSize > 1000)
+        m_TDC_evtBuffer_flushSize = 1000;
 
-// Static
-std::string ConditionManager::stateToString(ConditionManager::State state) {
-    switch(state) {
-        case State::idle:
-            return "idle";
-        case State::configured:
-            return "configured";
-        case State::running:
-            return "running";
-        default:
-            return "Unknown state!";
+    std::cout << "Checking if the PC is connected to board..." << std::endl;
+    UsbController *dummy_controller = new UsbController(DEBUG);
+    bool canTalkToBoards = (dummy_controller->getStatus() == 0);
+    std::cout << "Deleting dummy USB controller..." << std::endl;
+    delete dummy_controller;
+    if (canTalkToBoards) {
+        std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
+        m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
+    } else {
+        std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
+        m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
     }
+
+    startHVDaemon();
 }
 
-// Static
-bool ConditionManager::checkTransition(ConditionManager::State state_from, ConditionManager::State state_to) { 
-    return std::find(m_transitions.begin(), m_transitions.end(), std::pair<State, State>( { state_from, state_to } ) ) != m_transitions.end();
-}
-
-bool ConditionManager::setState(ConditionManager::State state) {
-    if( state == m_state ) {
-        std::cout << "ConditionManager is already in state " << stateToString(m_state) << std::endl;
-        return false;
-    }
-   
-    if( !checkTransition(m_state, state) ) { 
-        throw std::runtime_error("Transition from " + stateToString(m_state) + " to " + stateToString(state) + " is not allowed.");
-    }
+ConditionManager::~ConditionManager() {
+    try { 
+        stopTDCReading();
+    } catch(daemon_state_error) {};
     
-    std::cout << "Changing ConditionManager state from " << stateToString(m_state) << " to " << stateToString(state) << std::endl;
-
-    m_state = state;
-
-    return true;
+    try { 
+        stopHVDaemon();
+    } catch(daemon_state_error) {};
 }
 
 bool ConditionManager::propagateHVPMTValue(std::size_t id) {
@@ -79,22 +92,32 @@ void ConditionManager::stopTrigger() {
     m_setup_manager->setTrigger(7, 0); // Channel 7 means disabled...
 }
 
-void ConditionManager::startDaemons() {
-    if( setState(State::running) ) {
-        thread_handle_HV = std::thread(&ConditionManager::daemonHV, std::ref(*this));
-        thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
-    }
+void ConditionManager::resetTrigger() {
+    m_setup_manager->resetTrigger();
 }
 
-void ConditionManager::stopDaemons() {
-    if( setState(State::idle) ) {
-        thread_handle_HV.join();
-        thread_handle_TDC.join();
+std::uint64_t ConditionManager::getTriggerEventNumber() {
+    return m_setup_manager->getTTCEventNumber();
+}
+
+void ConditionManager::startHVDaemon() {
+    if (thread_handle_HV.joinable()) {
+        throw daemon_state_error("HV daemon was already running");
     }
+    m_HV_daemon_running = true;
+    thread_handle_HV = std::thread(&ConditionManager::daemonHV, std::ref(*this));
+}
+
+void ConditionManager::stopHVDaemon() {
+    if (!thread_handle_HV.joinable()) {
+        throw daemon_state_error("HV daemon was not running");
+    }
+    m_HV_daemon_running = false;
+    thread_handle_HV.join();
 }
 
 void ConditionManager::daemonHV() {
-    while(m_state == State::running) {
+    while (m_HV_daemon_running) {
         // wait some time
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       
@@ -105,12 +128,141 @@ void ConditionManager::daemonHV() {
             m_hvpmt.at(id).readValue = hv_values.at(id).first;
             m_hvpmt.at(id).readCurrent = hv_values.at(id).second;
         }
-
     }
 }
 
-void ConditionManager::daemonTDC() {
-    while(m_state == State::running) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+void ConditionManager::startTDCReading() {
+    if (thread_handle_TDC.joinable()) {
+        throw daemon_state_error("TDC daemon was already running");
     }
+    
+    m_TDC_daemon_running = true;
+    thread_handle_TDC = std::thread(&ConditionManager::daemonTDC, std::ref(*this));
+}
+
+void ConditionManager::stopTDCReading() {
+    if (!thread_handle_TDC.joinable()) {
+        throw daemon_state_error("TDC daemon was not running");
+    }
+
+    m_TDC_daemon_running = false;
+    thread_handle_TDC.join();
+}
+
+void ConditionManager::configureTDC() {
+    m_TDC_offsetMinimum.clear();
+    m_TDC_evtCounter = 0;
+    m_TDC_evtBuffer.clear();
+    m_TDC_backPressuring = false;
+    m_TDC_fatal = false;
+    
+    m_setup_manager->configureTDC();
+}
+
+std::int64_t ConditionManager::getTDCFIFOEventCount() {
+    std::int64_t n_evt = m_setup_manager->getTDCNEvents();
+    unsigned int tdc_status = m_setup_manager->getTDCStatus();
+    bool data_ready = tdc::dataReady(tdc_status);
+    
+    return (data_ready && n_evt == 0) ? 1000 : n_evt; 
+}
+
+void ConditionManager::daemonTDC() {
+
+    while(m_TDC_daemon_running) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        unsigned int tdc_status;
+        {
+            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+            tdc_status = m_setup_manager->getTDCStatus();
+        }
+        bool almost_full = tdc::isAlmostFull(tdc_status);
+        bool lost_trigger = tdc::lostTrig(tdc_status);
+        bool data_ready = tdc::dataReady(tdc_status);
+
+        if (lost_trigger) {
+            m_TDC_fatal = true;
+            std::cout << "TDC fatal error: lost triggers" << std::endl;
+            break;
+        }
+
+        if (almost_full) {
+ 
+            // Something bad has happened or is about to happen -> backpressure the TTC
+            std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
+            stopTrigger();
+            m_TDC_backPressuring = true;
+        
+        } else {
+
+            if (m_TDC_backPressuring) {
+                std::lock_guard<std::mutex> m_TTC_lock(m_ttc_mtx);
+                startTrigger();
+                m_TDC_backPressuring = false;
+            }
+            
+        }
+
+        if (data_ready) {
+            
+            std::size_t n_evt = 0;
+ 
+            // First check if the number of events is high enough that it's worth
+            // it to start an acquisition loop
+            {
+                std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+                n_evt = m_setup_manager->getTDCNEvents();
+            }
+            if (n_evt < m_TDC_evtBuffer_flushSize / 2) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                continue;
+            }
+
+            std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
+ 
+            // n_evt = 0 can happen if actual number of events between 1000 and 1024
+            // Also, read at most m_TDC_evtBuffer_flushSize events at once
+            if (n_evt > m_TDC_evtBuffer_flushSize || n_evt == 0)
+                n_evt = m_TDC_evtBuffer_flushSize;
+            
+            for (std::size_t i = 0; i < n_evt; i++) {
+                
+                event this_evt = m_setup_manager->getTDCEvent();
+
+                // Data is corrupt -> stop saving it!
+                if (this_evt.errorCode) {
+                    m_TDC_fatal = true;
+                    std::cout << "TDC fatal error: event error code " << this_evt.errorCode << std::endl;
+                    break;
+                }
+ 
+                // Check on the first event if TDC and TTC are in sync -> if not stop data taking!
+                if (i == 0) {
+                    std::int64_t evt_offset = 0;
+                    {
+                        std::lock_guard<std::mutex> m_ttc_lock(m_ttc_mtx);
+                        // TDC buffer is a FIFO -> add number of events still in buffer
+                        evt_offset = this_evt.eventNumber + m_setup_manager->getTDCNEvents() - m_setup_manager->getTTCEventNumber();
+                    }
+                    // Compute running minimum of offset over last X readings
+                    // If offset becomes too large, stop TDC data reading
+                    // Since the offset can only grow, using the running minimum is good enough
+                    evt_offset = m_TDC_offsetMinimum(std::abs(evt_offset));
+                    if (evt_offset > 3) {
+                        m_TDC_fatal = true;
+                        std::cout << "TDC fatal error: out of sync with TTC. Offset: " << evt_offset << std::endl;
+                        break;
+                    }
+                }
+                
+                m_TDC_evtBuffer.push_back(this_evt);
+                m_TDC_evtCounter++;
+            }
+        }
+
+        if (m_TDC_fatal)
+            break;
+    }
+
 }

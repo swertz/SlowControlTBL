@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include <QWidget>
 #include <QLabel>
@@ -14,13 +13,18 @@
 
 class Interface;
 
-class HVGroup : public QWidget {
+class HVGroup: public QGroupBox {
     friend class Interface;
     
     Q_OBJECT
 
     public:
+        /*
+         * Constructor
+         * LOCKS: HV
+         */
         HVGroup(Interface& m_interface);
+        
         virtual ~HVGroup() {}
         
         struct HVEntry {
@@ -32,19 +36,32 @@ class HVGroup : public QWidget {
             QCheckBox *cb_set_state;
         };
 
-    public:
-        void notifyUpdate();
-
     private slots:
-        void setRunning();
-        void setNotRunning();
+        //void setRunning();
+        //void setNotRunning();
+        
+        /*
+         * Switch on all HVs (propagate to ConditionManager)
+         * LOCKS: HV
+         */
         void switchON();
-        void switchOFF();
+        
+        /* 
+         * Switch off all HVs (propagate to ConditionManager)
+         * LOCKS: HV
+         */
+        //void switchOFF();
+        
+        /*
+         * Set all HV voltages (propagate to ConditionManager)
+         * LOCKS: HV
+         */
         void setHV();
 
     private:
+        void notifyUpdate();
       
-        QGroupBox *m_box;
+        //QGroupBox *m_box;
         std::vector<HVEntry> m_hventries;
         QPushButton *m_set;
         QPushButton *m_on_btn;

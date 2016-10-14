@@ -1,19 +1,22 @@
 #pragma once
 
 #include <mutex>
-#include <atomic>
 #include <thread>
+#include <atomic>
 #include <iostream>
 #include <utility>
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <cstdint>
 
 #include "SetupManager.h"
 #include "Interface.h"
 #include "RealSetupManager.h"
 #include "FakeSetupManager.h"
-#include "VmeUsbBridge.h"
+#include "Utils.h"
+
+#include "Event.h"
 
 class Interface;
 
@@ -21,59 +24,11 @@ class ConditionManager {
     
     public:
 
-        ConditionManager(Interface& m_interface):
-            m_interface(m_interface),
-            m_state(State::idle),
-            m_hvpmt({
-                    { 1025, 0, 0, false, true, false },
-                    { 925, 0, 0, false, true, false },
-                    { 1225, 0, 0, false, true, false },
-                    { 0, 0, 0, false, false, false }
-                    }),
-            m_discriChannels({
-                    { true, 5, 200 },
-                    { true, 5, 200 },
-                    { true, 5, 200 },
-                    { false, 5, 200 },
-                    { false, 5, 200 }
-                    }),
-            m_channelsMajority(3),
-            m_triggerChannel(1),
-            m_triggerRandomFrequency(0)
-        {
-            std::cout << "Checking if the PC is connected to board..." << std::endl;
-            UsbController *dummy_controller = new UsbController(DEBUG);
-            bool canTalkToBoards = (dummy_controller->getStatus() == 0);
-            std::cout << "Deleting dummy USB controller..." << std::endl;
-            delete dummy_controller;
-            if (canTalkToBoards) {
-                std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
-                m_setup_manager = std::make_shared<RealSetupManager>(m_interface);
-            } else {
-                std::cout << "WARNING : You are not on 'the' machine connected to the boards. Actions on the setup will be ignored." << std::endl;
-                m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
-            }
+        ConditionManager(Interface& m_interface);
+        ~ConditionManager();
 
-            // for testing purposes
-            setState(State::configured);
-
-            startDaemons();
-        }
-
-        ~ConditionManager() { stopDaemons(); }
-
-        /*
-         * Define states of the state machine.
-         * Possible transitions (defined in constructor):
-         *  idle -> configured
-         *  configured -> running
-         *  running -> idle
-         *  configured -> idle
-         */
-        enum class State {
-            idle,
-            configured,
-            running
+        class daemon_state_error: public std::runtime_error {
+            using std::runtime_error::runtime_error;
         };
 
         /*
@@ -84,10 +39,8 @@ class ConditionManager {
             int setValue;
             int readValue;
             int readCurrent;
-            bool valueChanged;
             bool setState;
             //int readState;
-            bool stateChanged;
         };
 
         // Discri settings
@@ -97,39 +50,17 @@ class ConditionManager {
             int width;
         };
 
-
-        /*
-         * Get current ConditionManager state
-         */
-        ConditionManager::State getState() const { return m_state; }
-        
-        /*
-         * Change ConditionManager state to `state`.
-         * Throws exception if transition from current state is not allowed.
-         * Returns:
-         *  - `true` if state was changed successfully
-         *  - `false` if ConditionManager was already in the requested state
-         */
-        bool setState(ConditionManager::State state);
-        
-        /*
-         * Convert the state to a string
-         */
-        static std::string stateToString(ConditionManager::State state);
-
-        /*
-         * Check if transition from `state_from` to `state_to` is allowed
-         */
-        static bool checkTransition(ConditionManager::State state_from, ConditionManager::State state_to);
-
         /* 
          * Get locks. The locks are NOT locked in getters/setters below, because we assume users
          * will take care of that when they call them. 
          * Trying to lock a mutex in a getter/setter while the same lock was locked before by the
          * user would result in freezing the program.
+         * ALL functions requesting a lock are documented => ALWAYS check the functions you are calling
+         * if you request a lock yourself!!!
          */
         std::mutex& getHVLock() { return m_hv_mtx; }
         std::mutex& getTDCLock() { return m_tdc_mtx; }
+        std::mutex& getTTCLock() { return m_ttc_mtx; }
         std::mutex& getDiscriLock() { return m_discri_mtx; }
 
         /*
@@ -154,6 +85,8 @@ class ConditionManager {
         int getTriggerRandomFrequency() { return m_triggerRandomFrequency; }
         void startTrigger();
         void stopTrigger();
+        void resetTrigger();
+        std::uint64_t getTriggerEventNumber();
 
         /*
          * Define/retrieve/propagate the Discriminator conditions
@@ -170,29 +103,53 @@ class ConditionManager {
         bool propagateDiscriSettings();
 
         /*
-         * Daemons: will run as threads in the background,
-         * handle the HV & TDC cards
+         * Start/stop the TDC reading daemon
+         * Public, since done by interface when starting/stopping run
          */
-        void daemonHV();
-        void daemonTDC();
-
-        void startDaemons();
-        void stopDaemons();
-       
-        // Transitions are defined in .cc file
-        static const std::vector< std::pair<State, State> > m_transitions;
+        void startTDCReading();
+        void stopTDCReading();
+        /*
+         * Configure the TDC
+         */
+        void configureTDC();
+        std::vector<event>& getTDCEventBuffer() { return m_TDC_evtBuffer; };
+        std::int64_t getTDCEventCount() { return m_TDC_evtCounter; }
+        std::int64_t getTDCFIFOEventCount();
+        bool checkTDCBackPressure() { return m_TDC_backPressuring; }
+        bool checkTDCFatalError() { return m_TDC_fatal; }
+        std::size_t getTDCOffset() { return m_TDC_offsetMinimum(); }
 
     private:
 
+        /* 
+         * HV daemon: updates read values for voltage & current
+         * LOCKS: HV
+         */
+        void daemonHV();
+        /* 
+         * TDC daemon: reads TDC events, backpressures trigger if needed
+         * LOCKS: TDC, TTC
+         */
+        void daemonTDC();
+
+        /*
+         * Start and stop HV daemon as background thread
+         * Private, since done when ConditionManager is constructed/destroyed
+         */
+        void startHVDaemon();
+        void stopHVDaemon();
+       
         std::mutex m_hv_mtx;
         std::mutex m_discri_mtx;
+        std::mutex m_ttc_mtx;
         std::mutex m_tdc_mtx;
 
         Interface& m_interface;
-        std::atomic<State> m_state;
 
         std::thread thread_handle_HV;
+        std::atomic<bool> m_HV_daemon_running;
         std::thread thread_handle_TDC;
+        std::atomic<bool> m_TDC_daemon_running;
 
         std::vector<HVPMT> m_hvpmt;
         std::vector<DiscriChannel> m_discriChannels;
@@ -200,6 +157,13 @@ class ConditionManager {
 
         int m_triggerChannel;
         int m_triggerRandomFrequency;
+
+        std::vector<event> m_TDC_evtBuffer;
+        MovingMinimum<std::size_t> m_TDC_offsetMinimum;
+        std::atomic<bool> m_TDC_backPressuring;
+        std::atomic<bool> m_TDC_fatal;
+        std::int64_t m_TDC_evtCounter;
+        std::size_t m_TDC_evtBuffer_flushSize;
         
         std::shared_ptr<SetupManager> m_setup_manager;
 };

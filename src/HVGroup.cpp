@@ -10,31 +10,26 @@
 
 HVGroup::HVGroup(Interface& m_interface):
     m_interface(m_interface),
-    QWidget(&m_interface) {
-
-        m_box = new QGroupBox("HV Settings", this);
+    QGroupBox("HV settings", &m_interface) {
 
         m_layout = new QGridLayout();
+        m_layout->setSizeConstraint(QLayout::SetFixedSize);
 
         QLabel *toplabel_set_value = new QLabel("Set voltage");
-        toplabel_set_value->setAlignment(Qt::AlignCenter);
         int position_set_value = 1;
-        m_layout->addWidget(toplabel_set_value, 0, position_set_value);
+        m_layout->addWidget(toplabel_set_value, 0, position_set_value, Qt::AlignCenter);
 
         QLabel *toplabel_read_value = new QLabel("Read voltage");
-        toplabel_read_value->setAlignment(Qt::AlignCenter);
         int position_read_value = 2;
-        m_layout->addWidget(toplabel_read_value, 0, position_read_value);
+        m_layout->addWidget(toplabel_read_value, 0, position_read_value, Qt::AlignCenter);
 
         QLabel *toplabel_read_current = new QLabel("Read current");
-        toplabel_read_current->setAlignment(Qt::AlignCenter);
         int position_read_current = 3;
-        m_layout->addWidget(toplabel_read_current, 0, position_read_current);
+        m_layout->addWidget(toplabel_read_current, 0, position_read_current, Qt::AlignCenter);
 
         QLabel *toplabel_set_state = new QLabel("Switch ON");
-        toplabel_set_state->setAlignment(Qt::AlignCenter);
         int position_set_state = 4;
-        m_layout->addWidget(toplabel_set_state, 0, position_set_state);
+        m_layout->addWidget(toplabel_set_state, 0, position_set_state, Qt::AlignCenter);
 
         //m_layout->addWidget(toplabel_read_state, 0, 4);
     
@@ -71,7 +66,7 @@ HVGroup::HVGroup(Interface& m_interface):
             
             m_hventries.push_back(hventry);
 
-            const int position = hv_id+1;            
+            const int position = hv_id + 1;            
             m_layout->addWidget(hventry.label, position, 0);
             m_layout->addWidget(hventry.cb_set_state, position, position_set_state);
             m_layout->addWidget(hventry.sb_set_value, position, position_set_value);
@@ -86,18 +81,18 @@ HVGroup::HVGroup(Interface& m_interface):
         connect(m_on_btn, &QPushButton::clicked, &m_interface, &Interface::updateConditionLog);
         m_layout->addWidget(m_on_btn, m_interface.m_conditions->getNHVPMT()+1, position_set_state);
 
-        m_off_btn = new QPushButton("Switch OFF");
+        /*/m_off_btn = new QPushButton("Switch OFF");
         connect(m_off_btn, &QPushButton::clicked, this, &HVGroup::switchOFF);
         connect(m_off_btn, &QPushButton::clicked, &m_interface, &Interface::updateConditionLog);
         m_layout->addWidget(m_off_btn, m_interface.m_conditions->getNHVPMT()+1, position_set_state);
-        m_off_btn->hide();
+        m_off_btn->hide();*/
 
         m_set = new QPushButton("Set");
         connect(m_set, &QPushButton::clicked, this, &HVGroup::setHV);
         connect(m_set, &QPushButton::clicked, &m_interface, &Interface::updateConditionLog);
         m_layout->addWidget(m_set, m_interface.m_conditions->getNHVPMT()+1, position_set_value);
-        m_box->setLayout(m_layout);
-
+        
+        setLayout(m_layout);
 }
 
 void HVGroup::notifyUpdate() {
@@ -113,8 +108,7 @@ void HVGroup::notifyUpdate() {
     for (int hv_id = 0; hv_id < m_interface.m_conditions->getNHVPMT(); hv_id++) {
         if (std::abs(m_interface.m_conditions->getHVPMTReadValue(hv_id) - m_interface.m_conditions->getHVPMTSetValue(hv_id))/float(m_interface.m_conditions->getHVPMTSetValue(hv_id)) > 0.05) {
             m_hventries.at(hv_id).readValue_label->setStyleSheet("QLabel { background-color : red; }");
-        }
-        else {
+        } else {
             m_hventries.at(hv_id).readValue_label->setStyleSheet("QLabel { background-color : green; }");
         }
         m_hventries.at(hv_id).readValue_label->setText(QString::number(m_interface.m_conditions->getHVPMTReadValue(hv_id)));
@@ -137,7 +131,7 @@ void HVGroup::switchON() {
     //m_off_btn->show();
 }
 
-void HVGroup::switchOFF() {
+/*void HVGroup::switchOFF() {
     std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
 
     // Update Condition manager with new HV states
@@ -147,7 +141,7 @@ void HVGroup::switchOFF() {
     }
     //m_on_btn->show();
     //m_off_btn->hide();
-}
+}*/
 
 void HVGroup::setHV() {
     std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getHVLock());
@@ -161,7 +155,7 @@ void HVGroup::setHV() {
     }
 }
 
-void HVGroup::setRunning() {
+/*/void HVGroup::setRunning() {
     //for (HVEntry hventry: m_hventries) {
     //    hventry.sb_set_value->hide();
     //    hventry.setValue_label->show();
@@ -175,4 +169,4 @@ void HVGroup::setNotRunning() {
         hventry.setValue_label->hide();
     }
     m_set->setDisabled(0);
-}
+}*/
