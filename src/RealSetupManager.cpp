@@ -105,21 +105,23 @@ void RealSetupManager::setTDCWindowWidth(int width) {
 }
 
 unsigned int RealSetupManager::getTDCStatus() {
-    return m_TDC.GetStatusWord();
+    return m_TDC.getStatusWord();
 }
 
 int RealSetupManager::getTDCNEvents() {
-    return m_TDC.GetNumberOfEvents();
+    return m_TDC.getNumberOfEvents();
 }
 
 event RealSetupManager::getTDCEvent() {
-    return m_TDC.GetEvent();
+    return m_TDC.getEvent();
 }
 
 void RealSetupManager::configureTDC() {
+    // Load all TDC parameters
+    m_TDC.loadUserConfig();
     // Empty TDC buffer
-    for (std::size_t i = 0; i < m_TDC.GetNumberOfEvents(); i++) {
-        m_TDC.GetEvent();
+    for (std::size_t i = 0; i < m_TDC.getNumberOfEvents(); i++) {
+        m_TDC.getEvent();
     }
 }
 

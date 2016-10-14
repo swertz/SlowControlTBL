@@ -162,7 +162,7 @@ void ConditionManager::configureTDC() {
 std::int64_t ConditionManager::getTDCFIFOEventCount() {
     std::int64_t n_evt = m_setup_manager->getTDCNEvents();
     unsigned int tdc_status = m_setup_manager->getTDCStatus();
-    bool data_ready = tdc::DataReady(tdc_status);
+    bool data_ready = tdc::dataReady(tdc_status);
     
     return (data_ready && n_evt == 0) ? 1000 : n_evt; 
 }
@@ -177,9 +177,9 @@ void ConditionManager::daemonTDC() {
             std::lock_guard<std::mutex> m_lock(m_tdc_mtx);
             tdc_status = m_setup_manager->getTDCStatus();
         }
-        bool almost_full = tdc::IsAlmostFull(tdc_status);
-        bool lost_trigger = tdc::LostTrig(tdc_status);
-        bool data_ready = tdc::DataReady(tdc_status);
+        bool almost_full = tdc::isAlmostFull(tdc_status);
+        bool lost_trigger = tdc::lostTrig(tdc_status);
+        bool data_ready = tdc::dataReady(tdc_status);
 
         if (lost_trigger) {
             m_TDC_fatal = true;
