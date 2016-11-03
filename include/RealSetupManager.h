@@ -12,6 +12,7 @@
 #include "TTCvi.h"
 #include "TDC.h"
 #include "Event.h"
+#include "Scaler.h"
 
 class Interface;
 
@@ -47,6 +48,10 @@ class RealSetupManager: public SetupManager {
         virtual event getTDCEvent() override;
         virtual void configureTDC() override;
 
+        // Scaler
+        virtual void resetScaler() override;
+        virtual int getScalerCount(ScalerChannel channel) override;
+
     private:
 
         UsbController m_controller;
@@ -54,6 +59,7 @@ class RealSetupManager: public SetupManager {
         discri m_discri;
         ttcVi m_TTC;
         tdc m_TDC;
+        scaler m_scaler;
         
         Interface& m_interface;
 };

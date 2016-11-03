@@ -10,6 +10,13 @@
 #include "VmeUsbBridge.h"
 #include "Event.h"
 
+// Static
+const std::map<ScalerChannel, std::pair<std::string, double>> ConditionManager::ScalerReadings = {
+    { ScalerChannel::PM0, { "PM0", 1 } },
+    { ScalerChannel::PM1, { "PM1", 1 } }
+};
+
+
 ConditionManager::ConditionManager(Interface& m_interface):
     m_interface(m_interface),
     m_HV_daemon_running(false),
@@ -34,7 +41,8 @@ ConditionManager::ConditionManager(Interface& m_interface):
     m_TDC_backPressuring(false),
     m_TDC_fatal(false),
     m_TDC_evtCounter(0),
-    m_TDC_evtBuffer_flushSize(50)
+    m_TDC_evtBuffer_flushSize(50),
+    m_scaler_interval(1000)
 {
     // No reliable way of knowing how many events we have
     // in the TDC buffer if there are more than 1000
@@ -54,6 +62,9 @@ ConditionManager::ConditionManager(Interface& m_interface):
         m_setup_manager = std::make_shared<FakeSetupManager>(m_interface);
     }
 
+    for (const auto& reading: ScalerReadings)
+        m_scaler_rates[reading.first] = Rate<std::chrono::high_resolution_clock>(reading.second.second);
+
     startHVDaemon();
 }
 
@@ -64,6 +75,10 @@ ConditionManager::~ConditionManager() {
     
     try { 
         stopHVDaemon();
+    } catch(daemon_state_error) {};
+    
+    try { 
+        stopScalerDaemon();
     } catch(daemon_state_error) {};
 }
 
@@ -266,3 +281,32 @@ void ConditionManager::daemonTDC() {
     }
 
 }
+
+void ConditionManager::startScalerDaemon() {
+    if (thread_handle_scaler.joinable()) {
+        throw daemon_state_error("Scaler daemon was already running");
+    }
+    m_scaler_daemon_running = true;
+    thread_handle_scaler = std::thread(&ConditionManager::daemonScaler, std::ref(*this));
+}
+
+void ConditionManager::stopScalerDaemon() {
+    if (!thread_handle_scaler.joinable()) {
+        throw daemon_state_error("Scaler daemon was not running");
+    }
+    m_scaler_daemon_running = false;
+    thread_handle_scaler.join();
+}
+
+void ConditionManager::daemonScaler() {
+
+    while(m_scaler_daemon_running) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(m_scaler_interval));
+        
+        std::lock_guard<std::mutex> m_lock(m_scaler_mtx);
+
+        for (const auto& reading: ScalerReadings)
+            m_scaler_rates.at(reading.first).add(m_setup_manager->getScalerCount(reading.first));
+    }
+}
+

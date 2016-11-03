@@ -39,6 +39,9 @@ class FakeSetupManager: public SetupManager {
         virtual event getTDCEvent() override;
         virtual void configureTDC() override;
 
+        virtual void resetScaler() override;
+        virtual int getScalerCount(ScalerChannel channel) override;
+
     private:
 
         Interface& m_interface;

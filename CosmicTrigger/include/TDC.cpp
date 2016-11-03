@@ -391,15 +391,15 @@ int tdc::waitRead(void)
     unsigned int DATA=0;
     int i=0;
     bool success = 0;
-	while(i<10000){
-			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_read");
-			if(DATA%4==3 || DATA%4==2) {success = true; break;}
+    while(i<10000){
+            TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_read");
+            if(DATA%4==3 || DATA%4==2) {success = true; break;}
             else i++;
             usleep(100); //TODO Optimise sleeping time
-	}
+    }
     if (!success && vLevel(ERROR))
         std::cerr<<"ERROR, device busy after 10000 tries"<<std::endl;
-	return success;
+    return success;
 }
 
 int tdc::waitWrite(void)
@@ -407,14 +407,14 @@ int tdc::waitWrite(void)
     unsigned int DATA=0;
     int i=0;
     bool success = 0;
-	while(i<10000){
-			TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_write");
-			if(DATA%2==1){success = true; break;}
+    while(i<10000){
+            TestError(readData(this->MicroHandshake,&DATA,A32_U_DATA,D16),"TDC: wait_write");
+            if(DATA%2==1){success = true; break;}
             else i++;
             usleep(100); //TODO Optimise sleeping time
-	}
-	
+    }
+    
     if (!success && vLevel(ERROR))
         std::cerr<<"Error, device busy after 10000 tries"<<std::endl;
-	return success;
+    return success;
 }

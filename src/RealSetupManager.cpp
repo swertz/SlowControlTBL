@@ -17,7 +17,8 @@ RealSetupManager::RealSetupManager(Interface& m_interface):
     m_hvpmt(hv(&m_controller, 0xF0000, 2)),
     m_discri(discri(&m_controller)),
     m_TTC(ttcVi(&m_controller)),
-    m_TDC(&m_controller, 0x00AA0000)
+    m_TDC(&m_controller, 0x00AA0000),
+    m_scaler(&m_controller)
     { }
 
 RealSetupManager::~RealSetupManager() {
@@ -123,6 +124,15 @@ void RealSetupManager::configureTDC() {
     for (std::size_t i = 0; i < m_TDC.getNumberOfEvents(); i++) {
         m_TDC.getEvent();
     }
+}
+
+void RealSetupManager::resetScaler() {
+    if (!m_scaler.reset())
+        std::cerr << "Warning: could not reset scaler!" << std::endl;
+}
+
+int RealSetupManager::getScalerCount(ScalerChannel channel) {
+    return m_scaler.getCount(static_cast<int>(channel));
 }
 
 //std::vector<double> RealSetupManager::getHVPMTState() {

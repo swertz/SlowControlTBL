@@ -64,3 +64,10 @@ event FakeSetupManager::getTDCEvent() {
 
 void FakeSetupManager::configureTDC() {
 }
+
+void FakeSetupManager::resetScaler() {
+}
+
+int FakeSetupManager::getScalerCount(ScalerChannel channel) {
+    return static_cast<int>(channel);
+}

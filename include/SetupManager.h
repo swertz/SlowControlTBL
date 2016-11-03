@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Event.h"
+#include "Utils.h"
 
 class SetupManager {
     public:
@@ -27,4 +28,7 @@ class SetupManager {
         virtual int getTDCNEvents() = 0;
         virtual event getTDCEvent() = 0;
         virtual void configureTDC() = 0;
+
+        virtual void resetScaler() = 0;
+        virtual int getScalerCount(ScalerChannel channel) = 0;
 };
