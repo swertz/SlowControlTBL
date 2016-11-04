@@ -120,7 +120,8 @@ class ConditionManager {
         bool checkTDCFatalError() { return m_TDC_fatal; }
         std::size_t getTDCOffset() { return m_TDC_offsetMinimum(); }
 
-        // Defined in .cpp
+        // Defined in .cpp: list of rate measurements using the scaler
+        // Maps a channel ID to a pair with a string (name of the measurement) and a double (constant multiplying the rate)
         static const std::map<ScalerChannel, std::pair<std::string, double>> ScalerReadings;
         double getScalerRate(ScalerChannel channel) { return m_scaler_rates.at(channel)(); }
         void resetScaler() { m_setup_manager->resetScaler(); }

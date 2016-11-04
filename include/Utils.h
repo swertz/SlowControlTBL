@@ -10,7 +10,7 @@
 #include <json/json.h>
 
 enum class ScalerChannel {
-    PM0,
+    PM0 = 1,
     PM1,
     NIM,
     VME,
@@ -177,10 +177,10 @@ class Rate {
         }
 
         double operator()() {
-            uint64_t delta_t_ms = std::chrono::duration_cast<std::chrono::nanoseconds>(last_time - first_time).count();
-            if (delta_t_ms == 0)
+            uint64_t delta_t_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(last_time - first_time).count();
+            if (delta_t_ns == 0)
                 return 0;
-            return m_cst * (last - first) / (1e9 * delta_t_ms);
+            return m_cst * (last - first) / (1e9 * delta_t_ns);
         }
 
     private:

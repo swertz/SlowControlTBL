@@ -13,7 +13,11 @@
 // Static
 const std::map<ScalerChannel, std::pair<std::string, double>> ConditionManager::ScalerReadings = {
     { ScalerChannel::PM0, { "PM0", 1 } },
-    { ScalerChannel::PM1, { "PM1", 1 } }
+    { ScalerChannel::PM1, { "PM1", 1 } },
+    { ScalerChannel::NIM, { "NIM", 1 } },
+    { ScalerChannel::VME, { "VME", 1 } },
+    { ScalerChannel::TTC, { "TTC", 1 } },
+    { ScalerChannel::Ileak, { "Ileak", 1 } }
 };
 
 

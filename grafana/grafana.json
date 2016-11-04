@@ -26,7 +26,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 2,
+          "id": 6,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -46,281 +46,23 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 5,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
               "aggregator": "sum",
-              "alias": "HV1",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
-              "downsampleInterval": "",
-              "filters": [],
-              "metric": "HVPMT.read",
-              "refId": "C",
-              "tags": {
-                "hv": "0"
-              }
-            },
-            {
-              "aggregator": "sum",
-              "alias": "HV2",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
-              "downsampleInterval": "",
-              "filters": [],
-              "metric": "HVPMT.read",
+              "metric": "TDC.nIntEvtBuffer",
               "refId": "A",
-              "tags": {
-                "hv": "1"
-              }
-            },
-            {
-              "aggregator": "sum",
-              "alias": "HV3",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
-              "filters": [],
-              "metric": "HVPMT.read",
-              "refId": "B",
-              "tags": {
-                "hv": "2"
-              }
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "PMT HV measured voltage",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "show": true
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": 0,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": 0,
-              "show": true
-            }
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "SlowControlTSDB",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 3,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 5,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "sum",
-              "alias": "HV1",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
-              "downsampleInterval": "",
-              "filters": [],
-              "metric": "HVPMT.set",
-              "refId": "C",
-              "tags": {
-                "hv": "0"
-              }
-            },
-            {
-              "aggregator": "sum",
-              "alias": "HV2",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
-              "downsampleInterval": "",
-              "filters": [],
-              "metric": "HVPMT.set",
-              "refId": "A",
-              "tags": {
-                "hv": "1"
-              }
-            },
-            {
-              "aggregator": "sum",
-              "alias": "HV3",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
-              "downsampleInterval": "",
-              "filters": [],
-              "metric": "HVPMT.set",
-              "refId": "B",
-              "tags": {
-                "hv": "2"
-              }
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "PMT HV set voltage",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "show": true
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": 0,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": 0,
-              "show": true
-            }
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "SlowControlTSDB",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 4,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 5,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "sum",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
-              "metric": "TDC.nEvt",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "TDC event counter",
+          "title": "TDC interface buffer",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -389,8 +131,8 @@
           "targets": [
             {
               "aggregator": "sum",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nFIFOEvtBuffer",
               "refId": "A"
@@ -399,93 +141,6 @@
           "timeFrom": null,
           "timeShift": null,
           "title": "TDC events in FIFO",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "show": true
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
-        }
-      ],
-      "title": "Row"
-    },
-    {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "SlowControlTSDB",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 6,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 5,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "sum",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "none",
-              "metric": "TDC.nIntEvtBuffer",
-              "refId": "A",
-              "shouldComputeRate": false
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "TDC interface buffer",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -528,7 +183,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 7,
+          "id": 4,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -554,16 +209,170 @@
           "targets": [
             {
               "aggregator": "sum",
-              "disableDownsampling": true,
-              "downsampleAggregator": "sum",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
               "downsampleFillPolicy": "zero",
+              "metric": "TDC.nEvt",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "TDC event counter",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 11,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 5,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "none",
               "metric": "TTC.nEvt",
               "refId": "A"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Trigger event counter",
+          "title": "TTC event counter",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 12,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 2,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "none",
+              "metric": "TDC.offset",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "TDC offset",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -595,10 +404,543 @@
         }
       ],
       "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 8,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
+              "isCounter": false,
+              "metric": "Scaler.PM0",
+              "refId": "A",
+              "shouldComputeRate": false
+            },
+            {
+              "aggregator": "none",
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
+              "metric": "Scaler.PM1",
+              "refId": "B"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "PM rates (scaler)",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Hz",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 9,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
+              "isCounter": false,
+              "metric": "Scaler.NIM",
+              "refId": "A",
+              "shouldComputeRate": false
+            },
+            {
+              "aggregator": "none",
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
+              "metric": "Scaler.VME",
+              "refId": "B"
+            },
+            {
+              "aggregator": "none",
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
+              "metric": "Scaler.TTC",
+              "refId": "C"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Trigger rates (scaler)",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Hz",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 10,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
+              "isCounter": false,
+              "metric": "Scaler.Ileak",
+              "refId": "A",
+              "shouldComputeRate": false
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Leakage current",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Amps",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 2,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 5,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "HV1",
+              "currentFilterGroupBy": false,
+              "currentFilterKey": "run_number",
+              "currentFilterType": "wildcard",
+              "currentFilterValue": "*",
+              "currentTagKey": "",
+              "currentTagValue": "",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "downsampleInterval": "",
+              "filters": [],
+              "metric": "HVPMT.read",
+              "refId": "C",
+              "tags": {
+                "hv": "0"
+              }
+            },
+            {
+              "aggregator": "sum",
+              "alias": "HV2",
+              "currentFilterGroupBy": false,
+              "currentFilterKey": "run_number",
+              "currentFilterType": "wildcard",
+              "currentFilterValue": "*",
+              "currentTagKey": "",
+              "currentTagValue": "",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "downsampleInterval": "",
+              "filters": [],
+              "metric": "HVPMT.read",
+              "refId": "A",
+              "tags": {
+                "hv": "1"
+              }
+            },
+            {
+              "aggregator": "sum",
+              "alias": "HV3",
+              "currentFilterGroupBy": false,
+              "currentFilterKey": "run_number",
+              "currentFilterType": "wildcard",
+              "currentFilterValue": "*",
+              "currentTagKey": "",
+              "currentTagValue": "",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "filters": [],
+              "metric": "HVPMT.read",
+              "refId": "B",
+              "tags": {
+                "hv": "2"
+              }
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "PMT HV measured voltage",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "V",
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "SlowControlTSDB",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 3,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 5,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "HV1",
+              "currentFilterGroupBy": false,
+              "currentFilterKey": "run_number",
+              "currentFilterType": "wildcard",
+              "currentFilterValue": "*",
+              "currentTagKey": "",
+              "currentTagValue": "",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "downsampleInterval": "",
+              "filters": [],
+              "metric": "HVPMT.set",
+              "refId": "C",
+              "tags": {
+                "hv": "0"
+              }
+            },
+            {
+              "aggregator": "sum",
+              "alias": "HV2",
+              "currentFilterGroupBy": false,
+              "currentFilterKey": "run_number",
+              "currentFilterType": "wildcard",
+              "currentFilterValue": "*",
+              "currentTagKey": "",
+              "currentTagValue": "",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "downsampleInterval": "",
+              "filters": [],
+              "metric": "HVPMT.set",
+              "refId": "A",
+              "tags": {
+                "hv": "1"
+              }
+            },
+            {
+              "aggregator": "sum",
+              "alias": "HV3",
+              "currentFilterGroupBy": false,
+              "currentFilterKey": "run_number",
+              "currentFilterType": "wildcard",
+              "currentFilterValue": "*",
+              "currentTagKey": "",
+              "currentTagValue": "",
+              "disableDownsampling": false,
+              "downsampleAggregator": "last",
+              "downsampleFillPolicy": "zero",
+              "downsampleInterval": "",
+              "filters": [],
+              "metric": "HVPMT.set",
+              "refId": "B",
+              "tags": {
+                "hv": "2"
+              }
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "PMT HV set voltage",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "V",
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "title": "Row"
     }
   ],
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -634,7 +976,7 @@
     "list": []
   },
   "schemaVersion": 12,
-  "version": 2,
+  "version": 8,
   "links": [],
   "gnetId": null
 }
