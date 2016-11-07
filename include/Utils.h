@@ -5,8 +5,19 @@
 #include <ctime>
 #include <cstdint>
 #include <list>
+#include <chrono>
 
 #include <json/json.h>
+
+enum class ScalerChannel {
+    PM0 = 1,
+    PM1,
+    NIM,
+    VME,
+    TTC,
+    Ileak 
+};
+
 
 /*
  * Helper functions for time management
@@ -138,4 +149,42 @@ class MovingMinimum {
         std::size_t m_size;
         T m_min_buffer;
         bool m_need_update;
+};
+
+/*
+ * Helper class to compute a rate given two measurements A and B at different times: 
+ * Returns Cst*(B-A)/(t_B-t_A) where Cst is a conversion constant (default 1)
+ */
+template<typename T>
+class Rate {
+    public:
+        Rate(double constant=1):
+            m_cst(constant),
+            first(0),
+            last(0)
+        {}
+
+        void add(double val, typename T::time_point now=T::now()) {
+            first = last;
+            last = val;
+            first_time = last_time;
+            last_time = now;
+        }
+
+        double operator()(double val, typename T::time_point now=T::now()) {
+            add(val, now);
+            return operator()();
+        }
+
+        double operator()() {
+            uint64_t delta_t_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(last_time - first_time).count();
+            if (delta_t_ns == 0)
+                return 0;
+            return m_cst * (last - first) / (1e9 * delta_t_ns);
+        }
+
+    private:
+        double m_cst;
+        double first, last;
+        typename T::time_point first_time, last_time;
 };

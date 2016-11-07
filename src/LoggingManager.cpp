@@ -115,6 +115,9 @@ void LoggingManager::initContinuousLog() {
         m_timeSeries_TDC_eventCounter = m_DB->addTimeSeries("TDC.nEvt", { { "run_number", std::to_string(m_run_number) } });
         m_timeSeries_TDC_offset = m_DB->addTimeSeries("TDC.offset", { { "run_number", std::to_string(m_run_number) } });
         m_timeSeries_TTC_eventCounter = m_DB->addTimeSeries("TTC.nEvt", { { "run_number", std::to_string(m_run_number) } });
+    
+        for (const auto& reading: ConditionManager::ScalerReadings)
+            m_timeSeries_scaler[reading.first] = m_DB->addTimeSeries("Scaler." + reading.second.first,  { { "run_number", std::to_string(m_run_number) } });
     }
 
     // Initialise the CSV file
@@ -128,6 +131,8 @@ void LoggingManager::initContinuousLog() {
     m_continuous_log->addField("tdc_nEvt");
     m_continuous_log->addField("tdc_offset");
     m_continuous_log->addField("ttc_nEvt");
+    for (const auto& reading: ConditionManager::ScalerReadings)
+        m_continuous_log->addField(reading.second.first);
     
     m_continuous_log->freeze();
 
@@ -191,6 +196,21 @@ void LoggingManager::updateContinuousLog(m_clock::time_point log_time, bool last
             m_DB->putValue(m_timeSeries_TTC_eventCounter, ttc_evt_count, time_now);
         }
     }
+    
+    // Fill Scaler-related information
+    {
+        std::lock_guard<std::mutex> scaler_lock(m_conditions.getScalerLock());
+        
+        for (const auto& reading: ConditionManager::ScalerReadings) {
+            double rate = m_conditions.getScalerRate(reading.first);
+            m_continuous_log->setField(reading.second.first, rate);
+        
+            if (m_DB.get()) {
+                m_DB->putValue(m_timeSeries_scaler.at(reading.first), rate, time_now);
+            }
+        }
+    }
+ 
  
     m_continuous_log->putLine();
 }

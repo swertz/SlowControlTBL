@@ -67,7 +67,6 @@ bool Interface::setState(Interface::State state) {
 Interface::Interface(QWidget *parent): 
     QWidget(parent),
     m_conditions(new ConditionManager(*this)),
-    m_discriTunerBtn(new QPushButton("Discriminator Settings")),
     m_state(State::idle)
     {
 
@@ -107,6 +106,13 @@ Interface::Interface(QWidget *parent):
         /* ------ TDC & TTC control box -----  */
         m_ttc_tdc_group = new Trigger_TDC_Group(*this);
 
+        /* ----- Discri tuner & scaler reset ----- */
+        QVBoxLayout *discri_scaler_layout = new QVBoxLayout();
+        m_discriTunerBtn = new QPushButton("Discriminator Settings");
+        QPushButton *scaler_resetBtn = new QPushButton("Reset scaler");
+        discri_scaler_layout->addWidget(m_discriTunerBtn);
+        discri_scaler_layout->addWidget(scaler_resetBtn);
+
         /* ----- Master grid ----- */
         QPushButton *quit = new QPushButton("Quit");
 
@@ -114,7 +120,7 @@ Interface::Interface(QWidget *parent):
         
         master_grid->addWidget(run_box, 0, 0);
         master_grid->addWidget(m_hv_group, 0, 1);
-        master_grid->addWidget(m_discriTunerBtn, 1, 0);
+        master_grid->addLayout(discri_scaler_layout, 1, 0);
         master_grid->addWidget(m_ttc_tdc_group, 1, 1);
         master_grid->addWidget(quit, 2, 0);
 
@@ -125,6 +131,11 @@ Interface::Interface(QWidget *parent):
         connect(m_startBtn, &QPushButton::clicked, this, &Interface::startRun);
         connect(m_stopBtn, &QPushButton::clicked, this, &Interface::stopRun);
         connect(m_discriTunerBtn, &QPushButton::clicked, this, &Interface::showDiscriSettingsWindow);
+        connect(scaler_resetBtn, &QPushButton::clicked, this, [&](){
+                    std::lock_guard<std::mutex> m_lock(m_conditions->getScalerLock());
+                    m_conditions->resetScaler();
+                }
+            );
         connect(quit, &QPushButton::clicked, this, &Interface::quit);
 
         m_timer = new QTimer(this);

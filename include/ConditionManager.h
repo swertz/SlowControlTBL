@@ -62,6 +62,7 @@ class ConditionManager {
         std::mutex& getTDCLock() { return m_tdc_mtx; }
         std::mutex& getTTCLock() { return m_ttc_mtx; }
         std::mutex& getDiscriLock() { return m_discri_mtx; }
+        std::mutex& getScalerLock() { return m_scaler_mtx; }
 
         /*
          * Define/retrieve/propagate the PMT HV conditions
@@ -119,6 +120,12 @@ class ConditionManager {
         bool checkTDCFatalError() { return m_TDC_fatal; }
         std::size_t getTDCOffset() { return m_TDC_offsetMinimum(); }
 
+        // Defined in .cpp: list of rate measurements using the scaler
+        // Maps a channel ID to a pair with a string (name of the measurement) and a double (constant multiplying the rate)
+        static const std::map<ScalerChannel, std::pair<std::string, double>> ScalerReadings;
+        double getScalerRate(ScalerChannel channel) { return m_scaler_rates.at(channel)(); }
+        void resetScaler() { m_setup_manager->resetScaler(); }
+
     private:
 
         /* 
@@ -131,6 +138,11 @@ class ConditionManager {
          * LOCKS: TDC, TTC
          */
         void daemonTDC();
+        /* 
+         * Scaler daemon: reads Scaler at fixed time intervals, computes rates
+         * LOCKS: Scaler
+         */
+        void daemonScaler();
 
         /*
          * Start and stop HV daemon as background thread
@@ -139,10 +151,18 @@ class ConditionManager {
         void startHVDaemon();
         void stopHVDaemon();
        
+        /*
+         * Start/stop the Scaler reading daemon
+         * Private, since done when ConditionManager is constructed/destroyed
+         */
+        void startScalerDaemon();
+        void stopScalerDaemon();
+
         std::mutex m_hv_mtx;
         std::mutex m_discri_mtx;
         std::mutex m_ttc_mtx;
         std::mutex m_tdc_mtx;
+        std::mutex m_scaler_mtx;
 
         Interface& m_interface;
 
@@ -150,6 +170,8 @@ class ConditionManager {
         std::atomic<bool> m_HV_daemon_running;
         std::thread thread_handle_TDC;
         std::atomic<bool> m_TDC_daemon_running;
+        std::thread thread_handle_scaler;
+        std::atomic<bool> m_scaler_daemon_running;
 
         std::vector<HVPMT> m_hvpmt;
         std::vector<DiscriChannel> m_discriChannels;
@@ -164,6 +186,9 @@ class ConditionManager {
         std::atomic<bool> m_TDC_fatal;
         std::int64_t m_TDC_evtCounter;
         std::size_t m_TDC_evtBuffer_flushSize;
+
+        uint64_t m_scaler_interval;
+        std::map<ScalerChannel, Rate<std::chrono::high_resolution_clock>> m_scaler_rates;
         
         std::shared_ptr<SetupManager> m_setup_manager;
 };

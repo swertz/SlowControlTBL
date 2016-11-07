@@ -41,7 +41,7 @@ Once everything is installed, one should make sure HBase and the OpenTSDB daemon
 </configuration>
 ```
 - Run server: `bin/start-hbase.sh`
-- To check that HBase is running, run `jps`: you should see a line contaning `HMaster`
+- To check that HBase is running, run `jps`: you should see a line containing `HMaster`
 - **NB**: On cmslab machine, make sure the file `/etc/hosts` contains the line `127.0.0.1 psiwks1.fynu.ucl.ac.be`. HBase has trouble starting if it's not the case.
 
 ### OpenTSDB
@@ -52,14 +52,14 @@ Once everything is installed, one should make sure HBase and the OpenTSDB daemon
 - To make sure it is running properly, open in a browser `localhost:4242`: you should see a page with the OpenTSDB logo.
 - **NB**: To start a browser from remote on cmslab computer, run `firefox --no-remote &> /dev/null &`
 
+### OpenTSDB Python client
+- Install: `sudo pip install git+https://github.com/delaere/python-opentsdbclient.git`
+- **NB**: On cmslab machine, you need to do: `sudo python2.7 /usr/bin/pip install git+https://github.com/delaere/python-opentsdbclient.git`
+
 ### Grafana
 - Install from http://docs.grafana.org/installation/
 - Start service: `sudo service grafana-server start` (on Ubuntu: `sudo systemctl start grafana-server`)
 - To check it is running: `sudo service grafana-server status` (`sudo systemctl status grafana-server`)
-
-### OpenTSDB Python client
-- Install: `sudo pip install git+https://github.com/delaere/python-opentsdbclient.git`
-- **NB**: On cmslab machine, you need to do: `sudo python2.7 /usr/bin/pip install git+https://github.com/delaere/python-opentsdbclient.git`
 
 You should now be able to open in a browser `localhost:3000` and see the Grafana interface. 
 
