@@ -21,7 +21,7 @@ const std::map<ScalerChannel, std::pair<std::string, double>> ConditionManager::
 };
 
 
-ConditionManager::ConditionManager(Interface& m_interface):
+ConditionManager::ConditionManager(Interface& m_interface, bool use_fake_setup):
     m_interface(m_interface),
     m_HV_daemon_running(false),
     m_TDC_daemon_running(false),
@@ -32,11 +32,11 @@ ConditionManager::ConditionManager(Interface& m_interface):
     m_discriChannels({
             { true, 5, 200 },
             { true, 5, 200 },
-            { true, 5, 200 },
+            { false, 5, 200 },
             { false, 5, 200 },
             { false, 5, 200 }
             }),
-    m_channelsMajority(3),
+    m_channelsMajority(2),
     m_triggerChannel(1),
     m_triggerRandomFrequency(0),
     m_TDC_offsetMinimum(5),
@@ -51,11 +51,14 @@ ConditionManager::ConditionManager(Interface& m_interface):
     if (m_TDC_evtBuffer_flushSize > 1000)
         m_TDC_evtBuffer_flushSize = 1000;
 
-    std::cout << "Checking if the PC is connected to board..." << std::endl;
-    UsbController *dummy_controller = new UsbController(DEBUG);
-    bool canTalkToBoards = (dummy_controller->getStatus() == 0);
-    std::cout << "Deleting dummy USB controller..." << std::endl;
-    delete dummy_controller;
+    bool canTalkToBoards = false;
+    if (!use_fake_setup) {
+        std::cout << "Checking if the PC is connected to board..." << std::endl;
+        UsbController *dummy_controller = new UsbController(DEBUG);
+        canTalkToBoards = (dummy_controller->getStatus() == 0);
+        std::cout << "Deleting dummy USB controller..." << std::endl;
+        delete dummy_controller;
+    }
     if (canTalkToBoards) {
         std::cout << "You are on 'the' machine connected to the boards and can take action on them." << std::endl;
         m_setup_manager = std::make_shared<RealSetupManager>(m_interface);

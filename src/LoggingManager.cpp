@@ -13,9 +13,10 @@
 #include "Utils.h"
 #include "PythonDB.h"
 
-LoggingManager::LoggingManager(Interface& m_interface, std::uint32_t run_number, std::uint32_t m_continuous_log_time):
+LoggingManager::LoggingManager(Interface& m_interface, std::uint32_t run_number, std::string m_path, std::uint32_t m_continuous_log_time):
     m_interface(m_interface),
     m_run_number(run_number),
+    m_log_path(m_path),
     m_conditions(m_interface.getConditions()),
     is_running(true),
     m_continuous_log_time(m_continuous_log_time),
@@ -43,14 +44,14 @@ LoggingManager::~LoggingManager() {
     finalizeContinuousLog();
 }
 
-bool LoggingManager::checkRunNumber(std::uint32_t number) {
-    if (std::ifstream("cont_log_run_" + std::to_string(number) + ".csv")) {
+bool LoggingManager::checkRunNumber(std::uint32_t number, std::string log_path) {
+    if (std::ifstream(log_path + "/cont_log_run_" + std::to_string(number) + ".csv")) {
         return true;
     }
-    if (std::ifstream("cond_log_run_" + std::to_string(number) + ".json")) {
+    if (std::ifstream(log_path + "/cond_log_run_" + std::to_string(number) + ".json")) {
         return true;
     }
-    if (std::ifstream("events_run_" + std::to_string(number) + ".root")) {
+    if (std::ifstream(log_path + "/events_run_" + std::to_string(number) + ".root")) {
         return true;
     }
     return false;
@@ -121,7 +122,7 @@ void LoggingManager::initContinuousLog() {
     }
 
     // Initialise the CSV file
-    m_continuous_log = std::make_shared<CSV>("cont_log_run_" + std::to_string(m_run_number) + ".csv");
+    m_continuous_log = std::make_shared<CSV>(m_log_path + "/cont_log_run_" + std::to_string(m_run_number) + ".csv");
 
     m_continuous_log->addField("timestamp");
     for (std::size_t id = 0; id < m_conditions.getNHVPMT(); id++) {
@@ -137,7 +138,7 @@ void LoggingManager::initContinuousLog() {
     m_continuous_log->freeze();
 
     // Initialise the ROOT file
-    std::string root_file_name = "events_run_" + std::to_string(m_run_number) + ".root";
+    std::string root_file_name = m_log_path + "/events_run_" + std::to_string(m_run_number) + ".root";
     m_root_file = new TFile(root_file_name.c_str(), "recreate");
     m_tree = new TTree("Events", "Events");
     m_tree->Branch("Event", &m_tmp_event);
@@ -287,7 +288,7 @@ void LoggingManager::finalizeConditionManagerLog() {
     Json::StyledWriter m_writer;
 
     std::ofstream file_stream;
-    file_stream.open("cond_log_run_" + std::to_string(m_run_number) + ".json");
+    file_stream.open(m_log_path + "/cond_log_run_" + std::to_string(m_run_number) + ".json");
     if(!file_stream.is_open())
         throw std::ios_base::failure("Could not open file cond_log.json");
     file_stream << m_writer.write(m_condition_json_root);
