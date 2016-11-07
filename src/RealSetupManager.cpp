@@ -65,17 +65,15 @@ bool RealSetupManager::propagateDiscriSettings() {
     bool succeeded_discriSettings = true;
     m_discri.setMultiChannel(0);
     m_discri.setTh(255);
-    for (int dc_id = 0; dc_id < m_interface.getConditions().getNDiscriChannels(); dc_id++) {
+    for (int dc_id = m_interface.getConditions().getNDiscriChannels()-1; dc_id >= 0; dc_id--) {
         succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setChannel(dc_id, m_interface.getConditions().getDiscriChannelState(dc_id))) == 1));
         succeeded_discriSettings = (succeeded_discriSettings && (m_discri.setTh(m_interface.getConditions().getDiscriChannelThreshold(dc_id), dc_id) == 1));
         succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setWidth(m_interface.getConditions().getDiscriChannelWidth(dc_id), dc_id)) == 1));
-        std::cout << "discri " << dc_id << " state: " << m_interface.getConditions().getDiscriChannelState(dc_id) << ", thresh: " << m_interface.getConditions().getDiscriChannelThreshold(dc_id) << ", width: " << m_interface.getConditions().getDiscriChannelWidth(dc_id) << std::endl;
 
     }
-    std::cout << "success: " << succeeded_discriSettings << std::endl;
     
     bool succeeded_majority = (m_discri.setMajority(m_interface.getConditions().getChannelsMajority()) == 1);
-    
+
     return succeeded_majority && succeeded_discriSettings;
 }
 
