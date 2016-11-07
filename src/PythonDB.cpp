@@ -68,7 +68,7 @@ std::shared_ptr<TimeSeries> OpenTSDBInterface::addTimeSeries(std::string name, T
     return std::shared_ptr<TimeSeries>(new TimeSeries(name, tags, pRet));
 }
 
-bool OpenTSDBInterface::putValue(std::shared_ptr<TimeSeries> ts, int64_t val, uint64_t time) {
+bool OpenTSDBInterface::putValue(std::shared_ptr<TimeSeries> ts, double val, uint64_t time) {
     if (m_pInterface == NULL) {
         std::cerr << "Interface not valid anymore!" << std::endl;
         return false;
@@ -78,7 +78,7 @@ bool OpenTSDBInterface::putValue(std::shared_ptr<TimeSeries> ts, int64_t val, ui
         return false;
     }
     
-    PyObject *pRet = PyObject_CallMethod(m_pInterface, const_cast<char*>("put_value"), const_cast<char*>("Olk"), ts->get(), val, time);
+    PyObject *pRet = PyObject_CallMethod(m_pInterface, const_cast<char*>("put_value"), const_cast<char*>("Odk"), ts->get(), val, time);
     if (pRet == NULL) {
         PyErr_Print();
         std::cerr << "Failed to call put_value!" << std::endl;

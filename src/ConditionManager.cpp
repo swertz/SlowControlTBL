@@ -30,11 +30,11 @@ ConditionManager::ConditionManager(Interface& m_interface, bool use_fake_setup):
             { 1350, 0, 0, true },
             }),
     m_discriChannels({
-            { true, 5, 200 },
-            { true, 5, 200 },
-            { false, 5, 200 },
-            { false, 5, 200 },
-            { false, 5, 200 }
+            { true, 30, 200 },
+            { true, 30, 200 },
+            { false, 30, 200 },
+            { false, 30, 200 },
+            { false, 30, 200 }
             }),
     m_channelsMajority(2),
     m_triggerChannel(1),
@@ -44,7 +44,7 @@ ConditionManager::ConditionManager(Interface& m_interface, bool use_fake_setup):
     m_TDC_fatal(false),
     m_TDC_evtCounter(0),
     m_TDC_evtBuffer_flushSize(50),
-    m_scaler_interval(1000)
+    m_scaler_interval(5000)
 {
     // No reliable way of knowing how many events we have
     // in the TDC buffer if there are more than 1000
@@ -310,8 +310,9 @@ void ConditionManager::daemonScaler() {
         
         std::lock_guard<std::mutex> m_lock(m_scaler_mtx);
 
-        for (const auto& reading: ScalerReadings)
+        for (const auto& reading: ScalerReadings) {
             m_scaler_rates.at(reading.first).add(m_setup_manager->getScalerCount(reading.first));
+        }
     }
 }
 

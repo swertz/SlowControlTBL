@@ -205,6 +205,7 @@ void Interface::startRun() {
     thread_handler = std::thread(&LoggingManager::run, std::ref(*m_logging_manager));
     
     m_ttc_tdc_group->atStartRun();
+    m_conditions->startScalerDaemon();
 
     //m_hv_group->setRunning();
     
@@ -220,6 +221,8 @@ void Interface::stopRun() {
         // Stop logging
         m_logging_manager->stop();
         thread_handler.join();
+    
+        m_conditions->stopScalerDaemon();
  
         //m_hv_group->setNotRunning();
     }

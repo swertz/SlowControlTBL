@@ -125,6 +125,13 @@ class ConditionManager {
         static const std::map<ScalerChannel, std::pair<std::string, double>> ScalerReadings;
         double getScalerRate(ScalerChannel channel) { return m_scaler_rates.at(channel)(); }
         void resetScaler() { m_setup_manager->resetScaler(); }
+        /*
+         * Start/stop the Scaler reading daemon
+         * Public, since called by interface when start/stop run
+         */
+        void startScalerDaemon();
+        void stopScalerDaemon();
+
 
     private:
 
@@ -151,13 +158,6 @@ class ConditionManager {
         void startHVDaemon();
         void stopHVDaemon();
        
-        /*
-         * Start/stop the Scaler reading daemon
-         * Private, since done when ConditionManager is constructed/destroyed
-         */
-        void startScalerDaemon();
-        void stopScalerDaemon();
-
         std::mutex m_hv_mtx;
         std::mutex m_discri_mtx;
         std::mutex m_ttc_mtx;

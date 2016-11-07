@@ -220,7 +220,7 @@ class Rate {
             uint64_t delta_t_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(last_time - first_time).count();
             if (delta_t_ns == 0)
                 return 0;
-            return m_cst * (last - first) / (1e9 * delta_t_ns);
+            return m_cst * (last - first) / (1e-9 * delta_t_ns);
         }
 
     private:

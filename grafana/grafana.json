@@ -51,9 +51,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
+              "aggregator": "avg",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nIntEvtBuffer",
               "refId": "A",
@@ -130,9 +130,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
+              "aggregator": "avg",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nFIFOEvtBuffer",
               "refId": "A"
@@ -208,9 +208,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
+              "aggregator": "avg",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.nEvt",
               "refId": "A"
@@ -286,11 +286,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
-              "downsampleAggregator": "last",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "metric": "TTC.nEvt",
-              "refId": "A"
+              "refId": "A",
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -363,11 +364,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
-              "downsampleAggregator": "last",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "metric": "TDC.offset",
-              "refId": "A"
+              "refId": "A",
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -448,20 +450,22 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "none",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "isCounter": false,
               "metric": "Scaler.PM0",
               "refId": "A",
-              "shouldComputeRate": false
+              "shouldComputeRate": false,
+              "disableDownsampling": true
             },
             {
-              "aggregator": "none",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "metric": "Scaler.PM1",
-              "refId": "B"
+              "refId": "B",
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -534,25 +538,27 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "none",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "isCounter": false,
               "metric": "Scaler.NIM",
               "refId": "A",
-              "shouldComputeRate": false
+              "shouldComputeRate": false,
+              "disableDownsampling": true
             },
             {
-              "aggregator": "none",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "metric": "Scaler.VME",
-              "refId": "B"
+              "refId": "B",
+              "disableDownsampling": true
             },
             {
-              "aggregator": "none",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "aggregator": "sum",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "metric": "Scaler.TTC",
               "refId": "C"
             }
@@ -627,13 +633,14 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "none",
-              "downsampleAggregator": "avg",
-              "downsampleFillPolicy": "none",
+              "aggregator": "avg",
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
               "isCounter": false,
               "metric": "Scaler.Ileak",
               "refId": "A",
-              "shouldComputeRate": false
+              "shouldComputeRate": false,
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -652,7 +659,7 @@
           "yaxes": [
             {
               "format": "short",
-              "label": "Amps",
+              "label": "µA",
               "logBase": 1,
               "max": null,
               "min": null,
@@ -714,7 +721,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV1",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -722,8 +729,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -734,7 +741,7 @@
               }
             },
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV2",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -742,8 +749,8 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "downsampleInterval": "",
               "filters": [],
@@ -751,25 +758,6 @@
               "refId": "A",
               "tags": {
                 "hv": "1"
-              }
-            },
-            {
-              "aggregator": "sum",
-              "alias": "HV3",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
-              "downsampleFillPolicy": "zero",
-              "filters": [],
-              "metric": "HVPMT.read",
-              "refId": "B",
-              "tags": {
-                "hv": "2"
               }
             }
           ],
@@ -843,7 +831,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV1",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -851,9 +839,9 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
-              "downsampleFillPolicy": "zero",
+              "disableDownsampling": true,
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.set",
@@ -863,7 +851,7 @@
               }
             },
             {
-              "aggregator": "sum",
+              "aggregator": "avg",
               "alias": "HV2",
               "currentFilterGroupBy": false,
               "currentFilterKey": "run_number",
@@ -871,35 +859,15 @@
               "currentFilterValue": "*",
               "currentTagKey": "",
               "currentTagValue": "",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
-              "downsampleFillPolicy": "zero",
+              "disableDownsampling": true,
+              "downsampleAggregator": "avg",
+              "downsampleFillPolicy": "none",
               "downsampleInterval": "",
               "filters": [],
               "metric": "HVPMT.set",
               "refId": "A",
               "tags": {
                 "hv": "1"
-              }
-            },
-            {
-              "aggregator": "sum",
-              "alias": "HV3",
-              "currentFilterGroupBy": false,
-              "currentFilterKey": "run_number",
-              "currentFilterType": "wildcard",
-              "currentFilterValue": "*",
-              "currentTagKey": "",
-              "currentTagValue": "",
-              "disableDownsampling": false,
-              "downsampleAggregator": "last",
-              "downsampleFillPolicy": "zero",
-              "downsampleInterval": "",
-              "filters": [],
-              "metric": "HVPMT.set",
-              "refId": "B",
-              "tags": {
-                "hv": "2"
               }
             }
           ],
@@ -975,8 +943,9 @@
   "annotations": {
     "list": []
   },
+  "refresh": "5s",
   "schemaVersion": 12,
-  "version": 8,
+  "version": 3,
   "links": [],
   "gnetId": null
 }

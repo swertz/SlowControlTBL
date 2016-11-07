@@ -44,6 +44,7 @@ int discri::setMultiChannel(int code){
 }
 
 int discri::setMajority(int num){
+    std::cout << "majority to " << num << std::endl;
   double nRound=(num*50-25.0)/4.0;
   int round;
   if ((nRound+0.5)>int(nRound)){ round=(int)nRound+1;}
@@ -57,6 +58,7 @@ int discri::setMajority(int num){
 }
 
 int discri::setTh(int value,int num){
+    std::cout << "discri " << num << " thresh to " << value << std::endl;
   if(value>255 || value<0){
     if(vLevel(WARNING)) std::cerr<<"*  WARNING: illegal value , command ignored"<<std::endl;
     return(-1);

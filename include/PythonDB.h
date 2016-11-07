@@ -52,7 +52,7 @@ class OpenTSDBInterface {
         /*
          * Insert a measurement @val into a time series @ts, at time @time
          */
-        bool putValue(std::shared_ptr<TimeSeries> ts, int64_t val, uint64_t time);
+        bool putValue(std::shared_ptr<TimeSeries> ts, double val, uint64_t time);
 
 
     private:

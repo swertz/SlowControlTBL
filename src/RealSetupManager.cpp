@@ -18,7 +18,7 @@ RealSetupManager::RealSetupManager(Interface& m_interface):
     m_discri(discri(&m_controller)),
     m_TTC(ttcVi(&m_controller)),
     m_TDC(&m_controller, 0x00AA0000),
-    m_scaler(&m_controller)
+    m_scaler(&m_controller, 0xCCCC00)
     { }
 
 RealSetupManager::~RealSetupManager() {
@@ -61,16 +61,21 @@ std::vector< std::pair<double, double> > RealSetupManager::getHVPMTValue() {
 bool RealSetupManager::propagateDiscriSettings() {
     // Take action together with checking if the action succeded 
     // NB : Setup functions return several different int's so far
-    
-    bool succeeded_majority = (m_discri.setMajority(m_interface.getConditions().getChannelsMajority()) == 1);
 
     bool succeeded_discriSettings = true;
+    m_discri.setMultiChannel(0);
+    m_discri.setTh(255);
     for (int dc_id = 0; dc_id < m_interface.getConditions().getNDiscriChannels(); dc_id++) {
         succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setChannel(dc_id, m_interface.getConditions().getDiscriChannelState(dc_id))) == 1));
         succeeded_discriSettings = (succeeded_discriSettings && (m_discri.setTh(m_interface.getConditions().getDiscriChannelThreshold(dc_id), dc_id) == 1));
         succeeded_discriSettings = (succeeded_discriSettings && ((m_discri.setWidth(m_interface.getConditions().getDiscriChannelWidth(dc_id), dc_id)) == 1));
+        std::cout << "discri " << dc_id << " state: " << m_interface.getConditions().getDiscriChannelState(dc_id) << ", thresh: " << m_interface.getConditions().getDiscriChannelThreshold(dc_id) << ", width: " << m_interface.getConditions().getDiscriChannelWidth(dc_id) << std::endl;
 
     }
+    std::cout << "success: " << succeeded_discriSettings << std::endl;
+    
+    bool succeeded_majority = (m_discri.setMajority(m_interface.getConditions().getChannelsMajority()) == 1);
+    
     return succeeded_majority && succeeded_discriSettings;
 }
 
@@ -118,12 +123,14 @@ event RealSetupManager::getTDCEvent() {
 }
 
 void RealSetupManager::configureTDC() {
-    // Load all TDC parameters
-    m_TDC.loadUserConfig();
     // Empty TDC buffer
     for (std::size_t i = 0; i < m_TDC.getNumberOfEvents(); i++) {
         m_TDC.getEvent();
     }
+    m_TDC.reset();
+    // Load all TDC parameters
+    m_TDC.loadUserConfig();
+    m_TDC.enableFIFO();
 }
 
 void RealSetupManager::resetScaler() {
