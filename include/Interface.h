@@ -12,6 +12,8 @@
 #include <memory>
 #include <atomic>
 
+#include "Utils.h"
+
 class ConditionManager;
 class LoggingManager;
 class HVGroup;
@@ -26,7 +28,7 @@ class Interface : public QWidget {
     Q_OBJECT
 
     public:
-        Interface(QWidget *parent = 0);
+        Interface(Arguments m_args, QWidget* parent = 0);
 
         virtual ~Interface() {}
 
@@ -88,6 +90,8 @@ class Interface : public QWidget {
         void showDiscriSettingsWindow();
 
     private:
+
+        Arguments m_args;
       
         void setCounter(int i);
 

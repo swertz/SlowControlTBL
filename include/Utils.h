@@ -6,9 +6,13 @@
 #include <cstdint>
 #include <list>
 #include <chrono>
+#include <iostream>
 
 #include <json/json.h>
 
+/*
+ * Numbers for the scaler channels
+ */
 enum class ScalerChannel {
     PM0 = 1,
     PM1,
@@ -16,6 +20,42 @@ enum class ScalerChannel {
     VME,
     TTC,
     Ileak 
+};
+
+/*
+ * Small helper class to handle arguments for main
+ * Everything is static...
+ */
+class Arguments {
+    public:
+        Arguments(int argc, char **argv):
+            log_path("./"),
+            use_fake_setup(false)
+        {
+            for (std::size_t i = 1; i < argc; i++)
+                parseArgument(argv[i]);
+        }
+
+        std::string log_path;
+        bool use_fake_setup;
+
+    private:
+        void parseArgument(std::string arg) {
+            if (arg == "-f" || arg == "--fake") {
+                std::cout << "Will use fake setup no matter what." << std::endl;
+                use_fake_setup = true;
+                return;
+            } else if (arg == "-h" || arg == "--help") {
+                std::cout << "--- Slow control interface for test beam at Louvain ---\n\n";
+                std::cout << "List of available options:\n";
+                std::cout << " - '-f'/'--fake': Use fake setup even if real setup is connected (default false)\n";
+                std::cout << " - '-h'/'--help': Display this help\n";
+                std::cout << " - Unnamed argument: specify path to directory where log files will be stored (fault to current directory)\n\n";
+            } else {
+                std::cout << "Will write log files to " << arg << std::endl;
+                log_path = arg;
+            }
+        }
 };
 
 

@@ -108,7 +108,7 @@ class LoggingManager {
       
       using m_clock = std::chrono::system_clock;
 
-      LoggingManager(Interface& m_interface, std::uint32_t run_number, std::uint32_t m_continuous_log_time = 1000);
+      LoggingManager(Interface& m_interface, std::uint32_t run_number, std::string log_path = "./", std::uint32_t m_continuous_log_time = 1000);
       ~LoggingManager();
 
       void run();
@@ -124,7 +124,7 @@ class LoggingManager {
       /* Static: to check if creating a LoggingManager with a certain run number would overwrite existing log files
        * Return: true if log files already exist
        */
-      static bool checkRunNumber(std::uint32_t number);
+      static bool checkRunNumber(std::uint32_t number, std::string log_path = "./");
   
   private:
         
@@ -143,6 +143,7 @@ class LoggingManager {
       ConditionManager& m_conditions;
       std::atomic<bool> is_running;
 
+      std::string m_log_path;
       std::uint32_t m_continuous_log_time;
       std::uint32_t m_run_number;
       std::shared_ptr<CSV> m_continuous_log;

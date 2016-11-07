@@ -24,7 +24,7 @@ class ConditionManager {
     
     public:
 
-        ConditionManager(Interface& m_interface);
+        ConditionManager(Interface& m_interface, bool use_fake_setup);
         ~ConditionManager();
 
         class daemon_state_error: public std::runtime_error {

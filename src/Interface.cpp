@@ -64,9 +64,10 @@ bool Interface::setState(Interface::State state) {
     return true;
 }
 
-Interface::Interface(QWidget *parent): 
+Interface::Interface(Arguments m_args, QWidget *parent): 
     QWidget(parent),
-    m_conditions(new ConditionManager(*this)),
+    m_args(m_args),
+    m_conditions(new ConditionManager(*this, m_args.use_fake_setup)),
     m_state(State::idle)
     {
 
@@ -186,7 +187,7 @@ void Interface::configureRun() {
         m_conditions->propagateDiscriSettings();
     }
 
-    m_logging_manager = std::make_shared<LoggingManager>(*this, run_number);
+    m_logging_manager = std::make_shared<LoggingManager>(*this, run_number, m_args.log_path);
     
     m_ttc_tdc_group->atConfigureRun();
 
