@@ -32,11 +32,11 @@ ConditionManager::ConditionManager(Interface& m_interface, bool use_fake_setup):
     m_discriChannels({
             { true, 5, 200 },
             { true, 5, 200 },
-            { true, 5, 200 },
+            { false, 5, 200 },
             { false, 5, 200 },
             { false, 5, 200 }
             }),
-    m_channelsMajority(3),
+    m_channelsMajority(2),
     m_triggerChannel(1),
     m_triggerRandomFrequency(0),
     m_TDC_offsetMinimum(5),
