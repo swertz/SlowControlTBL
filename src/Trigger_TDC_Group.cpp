@@ -25,15 +25,18 @@ Trigger_TDC_Group::Trigger_TDC_Group(Interface& m_interface):
         m_triggerChannel_box = new QSpinBox();
         m_triggerChannel_box->setRange(-1, 7);
         m_triggerChannel_box->setValue(m_interface.m_conditions->getTriggerChannel());
+        m_triggerChannel_box->setToolTip("-1 and 5 --> random, 0 to 3 --> LV1 0 to 3, 4 --> VME function, 6 --> calib, 7 --> disabled");
         QLabel *triggerRandomLabel = new QLabel("Random Freq mode");
         m_triggerRandom_box = new QSpinBox();
         m_triggerRandom_box->setRange(0, 7);
         m_triggerRandom_box->setValue(m_interface.m_conditions->getTriggerRandomFrequency());
+        m_triggerRandom_box->setToolTip("0 --> 1Hz , 1 --> 100Hz, 2 --> 1kHz, 3 --> 5kHz, 4 --> 10kHz, 5 --> 25kHz, 6 --> 50kHz, 7 --> 100kHz");
         triggerControl_layout->addWidget(triggerLabel);
         triggerControl_layout->addWidget(triggerChannelLabel);
         triggerControl_layout->addWidget(m_triggerChannel_box);
         triggerControl_layout->addWidget(triggerRandomLabel);
         triggerControl_layout->addWidget(m_triggerRandom_box);
+        //triggerHelp_box->setText("Trigger channel: \n    -1 and 5 --> random, 0 to 3 --> LV1 0 to 3, 4 --> VME function, 6 --> calib, 7 --> disabled \n \n Random Freq Mode: 0 --> 1Hz , 1 --> 100Hz, 2 --> 1kHz, 3 --> 5kHz, 4 --> 10kHz, 5 --> 25kHz, 6 --> 50kHz, 7 --> 100kHz \n")
         
         /* -- Status -- */
         QGridLayout *m_status_layout = new QGridLayout();
