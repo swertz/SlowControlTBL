@@ -17,7 +17,7 @@ const std::map<ScalerChannel, std::pair<std::string, double>> ConditionManager::
     { ScalerChannel::NIM, { "NIM", 1 } },
     { ScalerChannel::VME, { "VME", 1 } },
     { ScalerChannel::TTC, { "TTC", 1 } },
-    { ScalerChannel::Ileak, { "Ileak", 1 } }
+    { ScalerChannel::Ileak, { "Ileak", 1e-3 } }
 };
 
 
@@ -26,10 +26,8 @@ ConditionManager::ConditionManager(Interface& m_interface):
     m_HV_daemon_running(false),
     m_TDC_daemon_running(false),
     m_hvpmt({
-            { 1025, 0, 0, true },
-            { 925, 0, 0, true },
-            { 1225, 0, 0, true },
-            { 0, 0, 0, false }
+            { 1350, 0, 0, true },
+            { 1350, 0, 0, true },
             }),
     m_discriChannels({
             { true, 5, 200 },
