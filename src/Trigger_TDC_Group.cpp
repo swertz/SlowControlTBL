@@ -139,9 +139,9 @@ void Trigger_TDC_Group::atConfigureRun() {
     {
         // Propagate trigger info to condition manager and setup
         std::lock_guard<std::mutex> m_lock(m_interface.m_conditions->getTTCLock());
+        m_interface.m_conditions->resetTrigger();
         m_interface.m_conditions->setTriggerChannel(m_triggerChannel_box->value());
         m_interface.m_conditions->setTriggerRandomFrequency(m_triggerRandom_box->value());
-        m_interface.m_conditions->resetTrigger();
     }
 
     {
@@ -189,4 +189,6 @@ void Trigger_TDC_Group::atStopRun() {
     m_trigger_eventCounter_label->setText("0");
 
     m_tdc_ok_label->hide();
+    m_tdc_backPressure_label->hide();
+    m_tdc_fatal_label->hide();
 }

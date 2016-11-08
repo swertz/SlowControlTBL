@@ -50,7 +50,7 @@ HVGroup::HVGroup(Interface& m_interface):
             //connect(hventry.cb_set_state, &QCheckBox::stateChanged, [&](){ m_interface.m_conditions->setHVPMTState(hventry.hv_number, hventry.cb_set_state->isChecked());});
             
             hventry.sb_set_value = new QSpinBox();
-            hventry.sb_set_value->setRange(0, 2000);
+            hventry.sb_set_value->setRange(0, 1500);
             hventry.sb_set_value->setWrapping(1);
             hventry.sb_set_value->setValue(setHVValue);
             

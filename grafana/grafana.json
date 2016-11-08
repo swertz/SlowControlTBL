@@ -287,11 +287,11 @@
           "targets": [
             {
               "aggregator": "avg",
+              "disableDownsampling": true,
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TTC.nEvt",
-              "refId": "A",
-              "disableDownsampling": true
+              "refId": "A"
             }
           ],
           "timeFrom": null,
@@ -365,11 +365,11 @@
           "targets": [
             {
               "aggregator": "avg",
+              "disableDownsampling": true,
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "TDC.offset",
-              "refId": "A",
-              "disableDownsampling": true
+              "refId": "A"
             }
           ],
           "timeFrom": null,
@@ -451,21 +451,21 @@
           "targets": [
             {
               "aggregator": "avg",
+              "disableDownsampling": true,
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "isCounter": false,
               "metric": "Scaler.PM0",
               "refId": "A",
-              "shouldComputeRate": false,
-              "disableDownsampling": true
+              "shouldComputeRate": false
             },
             {
               "aggregator": "avg",
+              "disableDownsampling": true,
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "metric": "Scaler.PM1",
-              "refId": "B",
-              "disableDownsampling": true
+              "refId": "B"
             }
           ],
           "timeFrom": null,
@@ -539,28 +539,29 @@
           "targets": [
             {
               "aggregator": "avg",
+              "disableDownsampling": true,
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "isCounter": false,
               "metric": "Scaler.NIM",
               "refId": "A",
-              "shouldComputeRate": false,
-              "disableDownsampling": true
+              "shouldComputeRate": false
+            },
+            {
+              "aggregator": "avg",
+              "disableDownsampling": true,
+              "downsampleAggregator": "sum",
+              "downsampleFillPolicy": "zero",
+              "metric": "Scaler.VME",
+              "refId": "B"
             },
             {
               "aggregator": "avg",
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
-              "metric": "Scaler.VME",
-              "refId": "B",
-              "disableDownsampling": true
-            },
-            {
-              "aggregator": "sum",
-              "downsampleAggregator": "sum",
-              "downsampleFillPolicy": "zero",
               "metric": "Scaler.TTC",
-              "refId": "C"
+              "refId": "C",
+              "disableDownsampling": true
             }
           ],
           "timeFrom": null,
@@ -634,13 +635,13 @@
           "targets": [
             {
               "aggregator": "avg",
+              "disableDownsampling": true,
               "downsampleAggregator": "sum",
               "downsampleFillPolicy": "zero",
               "isCounter": false,
               "metric": "Scaler.Ileak",
               "refId": "A",
-              "shouldComputeRate": false,
-              "disableDownsampling": true
+              "shouldComputeRate": false
             }
           ],
           "timeFrom": null,
@@ -908,7 +909,7 @@
     }
   ],
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -943,9 +944,9 @@
   "annotations": {
     "list": []
   },
-  "refresh": "5s",
+  "refresh": "1s",
   "schemaVersion": 12,
-  "version": 3,
+  "version": 4,
   "links": [],
   "gnetId": null
 }
